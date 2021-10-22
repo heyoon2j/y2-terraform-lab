@@ -22,24 +22,17 @@
 */
 
 locals {
-   ## VPC
-    vpc = {
-        name = "vpc-y2net-prd-an2"
-        cidr = "10.20.0.0/24"
-        # id = aws_vpc.vpc-y2net-prd-an2.id
-    }
-
     ## Subnet
-    pubSub = {
-        name = "sbn-y2net-prd-an2-a-pub"
-        cidr = "10.20.0.0/26"
-        # id = aws_subnet.sbn-y2net-prd-an2-a-pub.id
+    sbns = {
+        name = [
+            "sbn-y2net-prd-an2-a-pub",
+            "sbn-y2net-prd-an2-c-pub",
+            "sbn-y2net-prd-an2-a-pri",
+            "sbn-y2net-prd-an2-c-pri"
+        ]
+        cidr = cidrsubnets(locals.vpc["cidr"], 2, 2, 2, 2)
     }
 
-    priSub = {
-        name = "sbn-y2net-prd-an2-a-pri"
-        cidr = "10.20.0.64/26"
-    }
 
     ## Gateway
     ## Internet Gateway
@@ -77,9 +70,9 @@ locals {
 
 
 ##### VPC #####
-resource "aws_vpc" "vpc-y2net-prd-an2" {
+resource "aws_vpc" "vpc-y2net" {
 
-    cidr_block = local.vpc["cidr"]
+    cidr_block = "10.20.0.0/24"
 
     # IPv6 CIDR Block 사용여부
     assign_generated_ipv6_cidr_block = "false"
@@ -95,11 +88,16 @@ resource "aws_vpc" "vpc-y2net-prd-an2" {
     # enable_classiclink_dns_support = "false"
 
     tags = {
-        Name : local.vpc["name"]
+        Name : "vpc-y2net-prd-an2"
     }
 }
 
 ##### Subnet #####
+resource "aws_subnet" "sbn-y2net" {
+    count = 
+
+}
+
 resource "aws_subnet" "sbn-y2net-prd-an2-a-pub" {
 
     vpc_id = aws_vpc.vpc-y2net-prd-an2.id # local.vpc["id"]

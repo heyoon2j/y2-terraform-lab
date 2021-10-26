@@ -19,6 +19,10 @@
     4) Attachment를 Transit Gateway의 Routing Table에 Association
     5) Attachment를 Transit Gateway의 Routing Table에 Propagation
     6) Transit Gateway Routing 추가 작업
+5. Endpoint
+    1) Endpoint 생성
+    2) 
+    3) Routing Table에 추가    
 */
 
 locals {

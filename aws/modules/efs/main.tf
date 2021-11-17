@@ -83,7 +83,7 @@ resource "aws_efs_mount_target" "efs_mt_proj_an2_a" {
 
 
 ####################
-# Access Point
+# Policy
 
 resource "aws_efs_file_system_policy" "efs_policy_proj_an2" {
   file_system_id = aws_efs_file_system.fs.id

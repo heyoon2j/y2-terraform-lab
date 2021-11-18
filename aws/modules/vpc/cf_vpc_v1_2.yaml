@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Description: >
+Description: >-
   AWS CloudFormation Sample Template VPC_Single_Instance_In_Subnet: Sample
   template showing how to create a VPC and add an EC2 instance with an Elastic
   IP address and a security group. **WARNING** This template creates an Amazon
@@ -51,6 +51,7 @@ Resources:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       SubnetId: !Ref Subnet
+      RouteTableId: !Ref RouteTable
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -65,12 +66,69 @@ Resources:
           FromPort: '80'
           ToPort: '80'
           CidrIp: 0.0.0.0/0
-  WebServerInstance:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AdditionalInfo: String
+      Affinity: String
+      AvailabilityZone: String
+      BlockDeviceMappings: 
+        - BlockDeviceMapping
+      CpuOptions: 
+        CpuOptions
+      CreditSpecification: 
+        CreditSpecification
+      DisableApiTermination: Boolean
+      EbsOptimized: Boolean
+      ElasticGpuSpecifications: 
+        - ElasticGpuSpecification
+      ElasticInferenceAccelerators: 
+        - ElasticInferenceAccelerator
+      EnclaveOptions: 
+        EnclaveOptions
+      HibernationOptions: 
+        HibernationOptions
+      HostId: String
+      HostResourceGroupArn: String
+      IamInstanceProfile: String
+      ImageId: String
+      InstanceInitiatedShutdownBehavior: String
+      InstanceType: String
+      Ipv6AddressCount: Integer
+      Ipv6Addresses: 
+        - InstanceIpv6Address
+      KernelId: String
+      KeyName: String
+      LaunchTemplate: 
+        LaunchTemplateSpecification
+      LicenseSpecifications: 
+        - LicenseSpecification
+      Monitoring: Boolean
+      NetworkInterfaces: 
+        - NetworkInterface
+      PlacementGroupName: String
+      PrivateIpAddress: String
+      RamdiskId: String
+      SecurityGroupIds: 
+        - String
+      SecurityGroups: 
+        - String
+      SourceDestCheck: Boolean
+      SsmAssociations: 
+        - SsmAssociation
+      SubnetId: String
+      Tags: 
+        - Tag
+      Tenancy: String
+      UserData: String
+      Volumes: 
+        - Volume
+  
     Type: 'AWS::EC2::Instance'
     DependsOn: AttachGateway
     Properties:
-      ImageId: "ami-0a5a6128e65676ebb"
-      InstanceType: "t2.micro"
+      ImageId: 'ami-00be885d550dcee43'
+      InstanceType: 't2.micro'
       # KeyName: !Ref KeyName
       Tags:
         - Key: Application
@@ -92,5 +150,5 @@ Resources:
         sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
         sudo systemctl restart sshd.service > /dev/null 2>&1;
         sudo yum install -y nginx
-        sudo systemctl start nginx.service  
+        sudo systemctl start nginx.service
 ...

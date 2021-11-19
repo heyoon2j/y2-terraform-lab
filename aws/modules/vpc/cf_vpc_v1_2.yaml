@@ -68,78 +68,33 @@ Resources:
           CidrIp: 0.0.0.0/0
   EC2Instance:
     Type: AWS::EC2::Instance
-    Properties: 
-      AdditionalInfo: String
-      Affinity: String
-      AvailabilityZone: String
-      BlockDeviceMappings: 
-        - BlockDeviceMapping
-      CpuOptions: 
-        CpuOptions
-      CreditSpecification: 
-        CreditSpecification
-      DisableApiTermination: Boolean
-      EbsOptimized: Boolean
-      ElasticGpuSpecifications: 
-        - ElasticGpuSpecification
-      ElasticInferenceAccelerators: 
-        - ElasticInferenceAccelerator
-      EnclaveOptions: 
-        EnclaveOptions
-      HibernationOptions: 
-        HibernationOptions
-      HostId: String
-      HostResourceGroupArn: String
-      IamInstanceProfile: String
-      ImageId: String
-      InstanceInitiatedShutdownBehavior: String
-      InstanceType: String
-      Ipv6AddressCount: Integer
-      Ipv6Addresses: 
-        - InstanceIpv6Address
-      KernelId: String
-      KeyName: String
-      LaunchTemplate: 
-        LaunchTemplateSpecification
-      LicenseSpecifications: 
-        - LicenseSpecification
-      Monitoring: Boolean
-      NetworkInterfaces: 
-        - NetworkInterface
-      PlacementGroupName: String
-      PrivateIpAddress: String
-      RamdiskId: String
-      SecurityGroupIds: 
-        - String
-      SecurityGroups: 
-        - String
-      SourceDestCheck: Boolean
-      SsmAssociations: 
-        - SsmAssociation
-      SubnetId: String
-      Tags: 
-        - Tag
-      Tenancy: String
-      UserData: String
-      Volumes: 
-        - Volume
-  
-    Type: 'AWS::EC2::Instance'
     DependsOn: AttachGateway
-    Properties:
-      ImageId: 'ami-00be885d550dcee43'
-      InstanceType: 't2.micro'
-      # KeyName: !Ref KeyName
-      Tags:
-        - Key: Application
-          Value: !Ref 'AWS::StackId'
-      NetworkInterfaces:
-        - GroupSet:
-            - !Ref InstanceSecurityGroup
-          AssociatePublicIpAddress: 'true'
-          DeviceIndex: '0'
-          DeleteOnTermination: 'true'
-          SubnetId: !Ref Subnet
+    Properties: 
+      AvailabilityZone: "ap-northeast-2a"
+      SubnetId: !Ref Subnet
+      ImageId: "ami-003ef1c0e2776ea27"
+      InstanceType: "t2.micro"
+      #Volumes: 
+      #  - Device: ''
+      #    VolumeId: ''
+      EbsOptimized: true
+      BlockDeviceMappings:
+        # Root Volume
+        - DeviceName: /dev/xvda
+          Ebs:
+            # SnapshotId: 'snap-01b10d61649e94224'
+            VolumeSize: 8
+            VolumeType: 'gp2'
+            # Iops: 1000
+            Encrypted: false
+            # KmsKeyId: arn:...
+            DeleteOnTermination: true
+      # IamInstanceProfile: IAM Name
+      DisableApiTermination: true
+      InstanceInitiatedShutdownBehavior: 'terminate'  
+      # KeyName: String
+      Monitoring: false
+      # Tenancy: 'defulat'    # dedicated / default / host
       UserData: |
         #!/bin/bash
         sudo useradd -G wheel sysadmin -m -u 520
@@ -150,5 +105,16 @@ Resources:
         sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
         sudo systemctl restart sshd.service > /dev/null 2>&1;
         sudo yum install -y nginx
-        sudo systemctl start nginx.service
+        sudo systemctl start nginx.serviceString
+      # NetworkInterfaces: 
+      #  - NetworkInterface
+      # PrivateIpAddress: '192.10.0.5'
+      SecurityGroupIds: 
+        - !Ref InstanceSecurityGroup
+      # SecurityGroups: 
+      #  - String
+      # SourceDestCheck: Boolean
+      Tags: 
+        - Key: 'Name'
+          Value: 'TestCloudformation'
 ...

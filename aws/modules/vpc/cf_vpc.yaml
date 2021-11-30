@@ -18,6 +18,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: "ap-northeast-2a"
       CidrBlock: 192.16.0.0/24
       Tags:
         - Key: Application
@@ -66,33 +67,4 @@ Resources:
           FromPort: '80'
           ToPort: '80'
           CidrIp: 0.0.0.0/0
-  WasInstance:
-    Type: 'AWS::EC2::Instance'
-    DependsOn: AttachGateway
-    Properties:
-      ImageId: "ami-00be885d550dcee43"
-      InstanceType: "t2.micro"
-      # KeyName: !Ref KeyName
-      Tags:
-        - Key: Application
-          Value: !Ref 'AWS::StackId'
-      NetworkInterfaces:
-        - GroupSet:
-            - !Ref InstanceSecurityGroup
-          AssociatePublicIpAddress: 'true'
-          DeviceIndex: '0'
-          DeleteOnTermination: 'true'
-          SubnetId: !Ref Subnet
-      
-      UserData: |
-        #!/bin/bash
-        sudo useradd -G wheel sysadmin -m -u 520
-        sudo echo 'koreanre12!' | passwd --stdin sysadmin
-        sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
-        sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-        sudo rm /etc/localtime
-        sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
-        sudo systemctl restart sshd.service > /dev/null 2>&1;
-        sudo yum install -y nginx
-        sudo systemctl start nginx.service
 ...

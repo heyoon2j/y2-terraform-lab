@@ -11,13 +11,18 @@ Resources:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 192.16.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
       Tags:
         - Key: Application
           Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: 'TestSC_VPC'
   Subnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: "ap-northeast-2a"
       CidrBlock: 192.16.0.0/24
       Tags:
         - Key: Application
@@ -28,6 +33,8 @@ Resources:
       Tags:
         - Key: Application
           Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: 'TestSC_IG'
   AttachGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
@@ -69,18 +76,18 @@ Resources:
   EC2Instance:
     Type: AWS::EC2::Instance
     DependsOn: AttachGateway
-    Properties: 
+    Properties:
       AvailabilityZone: "ap-northeast-2a"
-      SubnetId: !Ref Subnet
+      # SubnetId: !Ref Subnet
       ImageId: "ami-003ef1c0e2776ea27"
       InstanceType: "t2.micro"
       #Volumes: 
       #  - Device: ''
       #    VolumeId: ''
-      EbsOptimized: true
+      EbsOptimized: false
       BlockDeviceMappings:
         # Root Volume
-        - DeviceName: /dev/xvda
+        - DeviceName: '/dev/xvda'
           Ebs:
             # SnapshotId: 'snap-01b10d61649e94224'
             VolumeSize: 8
@@ -90,31 +97,43 @@ Resources:
             # KmsKeyId: arn:...
             DeleteOnTermination: true
       # IamInstanceProfile: IAM Name
-      DisableApiTermination: true
-      InstanceInitiatedShutdownBehavior: 'terminate'  
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: 'terminate'
       # KeyName: String
       Monitoring: false
-      # Tenancy: 'defulat'    # dedicated / default / host
-      UserData: |
-        #!/bin/bash
-        sudo useradd -G wheel sysadmin -m -u 520
-        sudo echo 'Krpricing!12' | passwd --stdin sysadmin
-        sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
-        sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-        sudo rm /etc/localtime
-        sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
-        sudo systemctl restart sshd.service > /dev/null 2>&1;
-        sudo yum install -y nginx
-        sudo systemctl start nginx.serviceString
-      # NetworkInterfaces: 
-      #  - NetworkInterface
-      # PrivateIpAddress: '192.10.0.5'
-      SecurityGroupIds: 
-        - !Ref InstanceSecurityGroup
+      # Tenancy: 'default'    # dedicated / default / host
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          Description: 'Primary network interface'
+          DeviceIndex: '0'
+          # Ipv6AddressCount: Integer
+          # Ipv6Addresses: 
+          #  - InstanceIpv6Address
+          # NetworkInterfaceId: String
+          # PrivateIpAddress: String
+          GroupSet:
+            - !Ref InstanceSecurityGroup
+          SubnetId: !Ref Subnet
+      # SecurityGroupIds:
+      #  - !Ref InstanceSecurityGroup
       # SecurityGroups: 
       #  - String
       # SourceDestCheck: Boolean
-      Tags: 
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            sudo useradd -G wheel sysadmin -m -u 520
+            sudo echo 'koreanre12!' | passwd --stdin sysadmin
+            sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
+            sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+            sudo rm /etc/localtime
+            sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+            sudo systemctl restart sshd.service > /dev/null 2>&1;
+            sudo amazon-linux-extras install -y nginx1
+            sudo systemctl start nginx.service
+      Tags:
         - Key: 'Name'
           Value: 'TestCloudformation'
 ...

@@ -1,0 +1,155 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Sample Template VPC_Single_Instance_In_Subnet: Sample
+  template showing how to create a VPC and add an EC2 instance with an Elastic
+  IP address and a security group. **WARNING** This template creates an Amazon
+  EC2 instance. You will be billed for the AWS resources used if you create a
+  stack from this template.
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/23
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: 'TestSC_VPC'
+  PubSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: "us-west-2a"
+      CidrBlock: 10.0.0.0/24
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+  PriSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: "us-west-2a"
+      CidrBlock: 10.0.0.1/24
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: 'TestSC_IG'
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  PubRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+  PriRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref 'AWS::StackId'
+  Route:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PubRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  SubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PubSubnet
+      RouteTableId: !Ref PubRouteTable
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    DependsOn: AttachGateway
+    Properties:
+      AvailabilityZone: "us-west-2a"
+      # SubnetId: !Ref Subnet
+      ImageId: "ami-0142f6ace1c558c7d"
+      InstanceType: "t2.micro"
+      #Volumes: 
+      #  - Device: ''
+      #    VolumeId: ''
+      EbsOptimized: false
+      BlockDeviceMappings:
+        # Root Volume
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            # SnapshotId: 'snap-01b10d61649e94224'
+            VolumeSize: 8
+            VolumeType: 'gp2'
+            # Iops: 1000
+            Encrypted: false
+            # KmsKeyId: arn:...
+            DeleteOnTermination: true
+      # IamInstanceProfile: IAM Name
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: 'terminate'
+      # KeyName: String
+      Monitoring: false
+      # Tenancy: 'default'    # dedicated / default / host
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          Description: 'Primary network interface'
+          DeviceIndex: '0'
+          # Ipv6AddressCount: Integer
+          # Ipv6Addresses: 
+          #  - InstanceIpv6Address
+          # NetworkInterfaceId: String
+          # PrivateIpAddress: String
+          GroupSet:
+            - !Ref InstanceSecurityGroup
+          SubnetId: !Ref Subnet
+      # SecurityGroupIds:
+      #  - !Ref InstanceSecurityGroup
+      # SecurityGroups: 
+      #  - String
+      # SourceDestCheck: Boolean
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            sudo useradd -G wheel sysadmin -m -u 520
+            sudo echo 'koreanre12!' | passwd --stdin sysadmin
+            sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
+            sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+            sudo rm /etc/localtime
+            sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+            sudo systemctl restart sshd.service > /dev/null 2>&1;
+            sudo amazon-linux-extras install -y nginx1
+            sudo systemctl start nginx.service
+      Tags:
+        - Key: 'Name'
+          Value: 'TestCloudformation'
+...

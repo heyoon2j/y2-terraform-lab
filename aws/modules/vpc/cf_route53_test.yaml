@@ -43,7 +43,7 @@ Resources:
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: 'TestSC_IG'
+          Value: 'Route_IG'
   AttachGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
@@ -89,6 +89,10 @@ Resources:
           FromPort: '80'
           ToPort: '80'
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '40022'
+          ToPort: '40022'
+          CidrIp: 0.0.0.0/0
   EC2Instance:
     Type: AWS::EC2::Instance
     DependsOn: AttachGateway
@@ -130,7 +134,69 @@ Resources:
           # PrivateIpAddress: String
           GroupSet:
             - !Ref InstanceSecurityGroup
-          SubnetId: !Ref Subnet
+          SubnetId: !Ref PubSubnet
+      # SecurityGroupIds:
+      #  - !Ref InstanceSecurityGroup
+      # SecurityGroups: 
+      #  - String
+      # SourceDestCheck: Boolean
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            sudo useradd -G wheel sysadmin -m -u 520
+            sudo echo 'koreanre12!' | passwd --stdin sysadmin
+            sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
+            sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+            sudo rm /etc/localtime
+            sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+            sudo systemctl restart sshd.service > /dev/null 2>&1;
+            sudo amazon-linux-extras install -y nginx1
+            sudo systemctl start nginx.service
+      Tags:
+        - Key: 'Name'
+          Value: 'TestCloudformation'
+  PriEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: "us-west-2a"
+      # SubnetId: !Ref Subnet
+      ImageId: "ami-0142f6ace1c558c7d"
+      InstanceType: "t2.micro"
+      #Volumes: 
+      #  - Device: ''
+      #    VolumeId: ''
+      EbsOptimized: false
+      BlockDeviceMappings:
+        # Root Volume
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            # SnapshotId: 'snap-01b10d61649e94224'
+            VolumeSize: 8
+            VolumeType: 'gp2'
+            # Iops: 1000
+            Encrypted: false
+            # KmsKeyId: arn:...
+            DeleteOnTermination: true
+      # IamInstanceProfile: IAM Name
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: 'terminate'
+      # KeyName: String
+      Monitoring: false
+      # Tenancy: 'default'    # dedicated / default / host
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          Description: 'Primary network interface'
+          DeviceIndex: '0'
+          # Ipv6AddressCount: Integer
+          # Ipv6Addresses: 
+          #  - InstanceIpv6Address
+          # NetworkInterfaceId: String
+          # PrivateIpAddress: String
+          GroupSet:
+            - !Ref InstanceSecurityGroup
+          SubnetId: !Ref PriSubnet
       # SecurityGroupIds:
       #  - !Ref InstanceSecurityGroup
       # SecurityGroups: 

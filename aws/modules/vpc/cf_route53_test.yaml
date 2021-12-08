@@ -32,7 +32,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: "us-west-2a"
-      CidrBlock: 10.0.0.1/24
+      CidrBlock: 10.0.1.0/24
       Tags:
         - Key: Application
           Value: !Ref 'AWS::StackId'
@@ -185,7 +185,7 @@ Resources:
       Monitoring: false
       # Tenancy: 'default'    # dedicated / default / host
       NetworkInterfaces: 
-        - AssociatePublicIpAddress: true
+        - AssociatePublicIpAddress: false
           DeleteOnTermination: true
           Description: 'Primary network interface'
           DeviceIndex: '0'

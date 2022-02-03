@@ -10,55 +10,37 @@ Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
-      CidrBlock: 192.16.0.0/16
+      CidrBlock: 110.0.0.0/24
       EnableDnsHostnames: true
       EnableDnsSupport: true
       Tags:
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: 'TestSC_VPC'
-  Subnet:
+          Value: 'RT_VPC'
+  PriSubnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: "us-west-1a"
-      CidrBlock: 192.16.0.0/24
-      Tags:
-        - Key: Application
-          Value: !Ref 'AWS::StackId'
-  InternetGateway:
-    Type: 'AWS::EC2::InternetGateway'
-    Properties:
+      CidrBlock: 110.0.0.0/24
       Tags:
         - Key: Application
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: 'TestSC_IG'
-  AttachGateway:
-    Type: 'AWS::EC2::VPCGatewayAttachment'
-    Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-  RouteTable:
+          Value: "PriSubnet"
+  PriRouteTable:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Application
           Value: !Ref 'AWS::StackId'
-  Route:
-    Type: 'AWS::EC2::Route'
-    DependsOn: AttachGateway
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
   SubnetRouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref Subnet
-      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PriSubnet
+      RouteTableId: !Ref PriRouteTable
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -73,13 +55,24 @@ Resources:
           FromPort: '80'
           ToPort: '80'
           CidrIp: 0.0.0.0/0
-  EC2Instance:
+        - IpProtocol: tcp
+          FromPort: '40022'
+          ToPort: '40022'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '3389'
+          ToPort: '3389'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '2073'
+          ToPort: '2073'
+          CidrIp: 0.0.0.0/0
+  PriEC2Instance:
     Type: AWS::EC2::Instance
-    DependsOn: AttachGateway
     Properties:
       AvailabilityZone: "us-west-1a"
       # SubnetId: !Ref Subnet
-      ImageId: "ami-0142f6ace1c558c7d"
+      ImageId: "ami-03af6a70ccd8cb578"
       InstanceType: "t2.micro"
       #Volumes: 
       #  - Device: ''
@@ -103,7 +96,7 @@ Resources:
       Monitoring: false
       # Tenancy: 'default'    # dedicated / default / host
       NetworkInterfaces: 
-        - AssociatePublicIpAddress: true
+        - AssociatePublicIpAddress: false
           DeleteOnTermination: true
           Description: 'Primary network interface'
           DeviceIndex: '0'
@@ -114,7 +107,7 @@ Resources:
           # PrivateIpAddress: String
           GroupSet:
             - !Ref InstanceSecurityGroup
-          SubnetId: !Ref Subnet
+          SubnetId: !Ref PriSubnet
       # SecurityGroupIds:
       #  - !Ref InstanceSecurityGroup
       # SecurityGroups: 
@@ -130,10 +123,7 @@ Resources:
             sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sudo rm /etc/localtime
             sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
-            sudo systemctl restart sshd.service > /dev/null 2>&1;
-            sudo amazon-linux-extras install -y nginx1
-            sudo systemctl start nginx.service
       Tags:
         - Key: 'Name'
-          Value: 'TestCloudformation'
+          Value: 'RT_PriWeb'
 ...

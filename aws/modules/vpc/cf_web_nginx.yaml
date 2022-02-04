@@ -125,7 +125,7 @@ Resources:
           !Sub |
             #!/bin/bash
             sudo useradd -G wheel sysadmin -m -u 520
-            sudo echo 'koreanre12!' | passwd --stdin sysadmin
+            sudo echo '12!' | passwd --stdin sysadmin
             sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
             sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
             sudo rm /etc/localtime

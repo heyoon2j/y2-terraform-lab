@@ -28,9 +28,11 @@ Metadata:
           - PubSubNum
           - PubSubNameList
           - PubSubCidrList
+          - PubSubAZList
           - PriSubNum
           - PriSubNameList
           - PriSubCidrList
+          - PriSubAZList
 
 Parameters:
   VpcName:
@@ -41,63 +43,68 @@ Parameters:
     Description: CIDR of VPC
     Type: String
     Default: "10.0.0.0/16"
-    AllowedPattern: ""
     ConstraintDescription: "Parameter must only contain "
   PubSubNum:
     Description: Number of Public Subnet
     Type: Number
-    AllowedPattern: ""
-    ConstraintDescription: ""
+    ConstraintDescription: "Parameter must only contain "
   PubSubNameList:
     Description: "Name List of Public Subnet"
     Type: String 
   PubSubCidrList:
     Description: "CIDR List of Public Subnet"
     Type: CommaDelimitedList
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
   PubSubAZList:
     Description: "AZ List of Public Subnet"
     Type: CommaDelimitedList
   PriSubNum:
     Description: Number of Private Subnet
     Type: Number
-    AllowedPattern: ""
-    ConstraintDescription: 
+    ConstraintDescription: "Parameter must only contain "
   PriSubNameList:
     Description: "Name List of Private Subnet"
     Type: CommaDelimitedList
   PriSubCidrList:
     Description: "CIDR List of Private Subnet"
     Type: CommaDelimitedList
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "  
   PriSubAZList:
     Description: "AZ List of Private Subnet"
     Type: CommaDelimitedList
+
+Conditions:
+  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
 Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
-      CidrBlock: {{ VpcCidr }}
+      CidrBlock: "10.0.0.0/16"
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: {{ VpcName }}
-  PubSub1: 
+          Value: !Ref VpcName
+  PubSub: 
     Type: 'AWS::EC2::Subnet'
+    Condition: IsPubSub1
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::If
-        - {{ PubSubAZList[0] }}
-        - !Ref {{ Fn::Join ['', [!Ref 'AWS::Region', !Ref {{ PubSubAZList[0] }}]] }}
-        - !Ref 'AWS::NoValue'
-      CidrBlock: {{ PubSubCidrList[0] }}
+      AvailabilityZone: Fn::Join
+        - ''
+        - - !Ref 'AWS::Region'
+          - !Select [0, !Ref PubSubAZList]
+      CidrBlock: !Select [0, !Ref PubSubCidrList]
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: {{ PubSubNameList[0] }}
+          Value: !Select [0, !Ref PubSubNameList]
+Outputs:
+  Test:
+    Description: Test
+    Value: Fn::Join
+        - ''
+        - - !Ref 'AWS::Region'
+          - !Select [0, !Ref PubSubAZList]
+
 ...

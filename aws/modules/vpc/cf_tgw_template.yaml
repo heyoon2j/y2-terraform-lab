@@ -1,0 +1,103 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # VPC Template
+  * For AWS CloudFormation - VPC Template
+
+  ## Resources
+  1. VPC
+  2. Public/Private Subnet
+  3. Public/Private Route & Routing Table
+  4. Internet Gateway
+
+  ## 
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: "VPC Configuration"
+        Parameters:
+          - VpcName
+          - VpcCidr
+      - 
+        Label:
+          default: "Subnet Configuration"
+        Parameters:
+          - PubSubNum
+          - PubSubNameList
+          - PubSubCidrList
+          - PriSubNum
+          - PriSubNameList
+          - PriSubCidrList
+
+Parameters:
+  VpcName:
+    Description: Name of VPC
+    Type: String
+    Default: "vpc-y2-test"
+  VpcCidr:
+    Description: CIDR of VPC
+    Type: String
+    Default: "10.0.0.0/16"
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "
+  PubSubNum:
+    Description: Number of Public Subnet
+    Type: Number
+    AllowedPattern: ""
+    ConstraintDescription: ""
+  PubSubNameList:
+    Description: "Name List of Public Subnet"
+    Type: String 
+  PubSubCidrList:
+    Description: "CIDR List of Public Subnet"
+    Type: CommaDelimitedList
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "
+  PubSubAZList:
+    Description: "AZ List of Public Subnet"
+    Type: CommaDelimitedList
+  PriSubNum:
+    Description: Number of Private Subnet
+    Type: Number
+    AllowedPattern: ""
+    ConstraintDescription: 
+  PriSubNameList:
+    Description: "Name List of Private Subnet"
+    Type: CommaDelimitedList
+  PriSubCidrList:
+    Description: "CIDR List of Private Subnet"
+    Type: CommaDelimitedList
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "  
+  PriSubAZList:
+    Description: "AZ List of Private Subnet"
+    Type: CommaDelimitedList
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: {{ VpcCidr }}
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: {{ VpcName }}
+  PubSub1: 
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: Fn::If
+        - {{ PubSubAZList[0] }}
+        - !Ref {{ Fn::Join ['', [!Ref 'AWS::Region', !Ref {{ PubSubAZList[0] }}]] }}
+        - !Ref 'AWS::NoValue'
+      CidrBlock: {{ PubSubCidrList[0] }}
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: {{ PubSubNameList[0] }}
+...

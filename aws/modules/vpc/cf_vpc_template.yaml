@@ -16,22 +16,25 @@ Description: >-
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - 
-        Label:
+      - Label:
           default: "VPC Configuration"
         Parameters:
           - VpcName
           - VpcCidr
-      - 
-        Label:
-          default: "Subnet Configuration"
+      - Label:
+          default: "Public Subnet Configuration"
         Parameters:
           - PubSubNum
           - PubSubNameList
           - PubSubCidrList
+          - PubSubAZList
+      - Label:
+          default: "Private Subnet Configuration"
+        Parameters:
           - PriSubNum
           - PriSubNameList
           - PriSubCidrList
+          - PriSubAZList
 
 Parameters:
   ProjInfix:
@@ -46,53 +49,60 @@ Parameters:
     Description: CIDR of VPC
     Type: String
     Default: "10.0.0.0/16"
-    AllowedPattern: ""
+    AllowedPattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}$
     ConstraintDescription: "Parameter must only contain "
   PubSubNum:
     Description: Number of Public Subnet
     Type: Number
-    MaxValue: 6
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
+    Default: 1
+    MaxValue: 4
+    MinValue: 0
   PubSubNameList:
     Description: "Name List of Public Subnet"
-    Type: String 
+    Type: CommaDelimitedList
+    Default: null,sbn-y2-test-pub1,null,null
   PubSubCidrList:
     Description: "CIDR List of Public Subnet"
     Type: CommaDelimitedList
-    AllowedPattern: ""
+    Default: null,10.0.0.0/24,null,null
   PubSubAZList:
     Description: "AZ List of Public Subnet"
     Type: CommaDelimitedList
+    Default: null,a,null,null
   PriSubNum:
     Description: Number of Private Subnet
     Type: Number
-    MaxValue: 4
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
+    Default: 2
+    MaxValue: 6
+    MinValue: 0
   PriSubNameList:
     Description: "Name List of Private Subnet"
     Type: CommaDelimitedList
+    Default: sbn-y2-test-pri1,null,null,null,sbn-y2-test-pri2,null
   PriSubCidrList:
     Description: "CIDR List of Private Subnet"
     Type: CommaDelimitedList
-    AllowedPattern: "" 
+    Default: 10.0.1.0/24,null,null,null,10.0.2.0/24,null
   PriSubAZList:
     Description: "AZ List of Private Subnet"
     Type: CommaDelimitedList
+    Default: a,null,null,null,b,null
 
 Conditions:
-  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
-  IsPubSub2: !Not [!Equals [!Select [1, !Ref PubSubAZList], ""]]
-  IsPubSub3: !Not [!Equals [!Select [2, !Ref PubSubAZList], ""]]
-  IsPubSub4: !Not [!Equals [!Select [3, !Ref PubSubAZList], ""]]
+  ExistPubSub: !Not [!Equals [0, !Ref PubSubNum]]
+  ExistPriSub: !Not [!Equals [0, !Ref PriSubNum]]
 
-  IsPriSub1: !Not [!Equals [!Select [0, !Ref PriSubNameList], ""]]
-  IsPriSub2: !Not [!Equals [!Select [1, !Ref PriSubNameList], ""]]
-  IsPriSub3: !Not [!Equals [!Select [2, !Ref PriSubNameList], ""]]
-  IsPriSub4: !Not [!Equals [!Select [3, !Ref PriSubNameList], ""]]
-  IsPriSub5: !Not [!Equals [!Select [4, !Ref PriSubNameList], ""]]
-  IsPriSub6: !Not [!Equals [!Select [5, !Ref PriSubNameList], ""]]
+  ExistPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], "null"]]
+  ExistPubSub2: !Not [!Equals [!Select [1, !Ref PubSubAZList], "null"]]
+  ExistPubSub3: !Not [!Equals [!Select [2, !Ref PubSubAZList], "null"]]
+  ExistPubSub4: !Not [!Equals [!Select [3, !Ref PubSubAZList], "null"]]
+  ExistPriSub1: !Not [!Equals [!Select [0, !Ref PriSubNameList], "null"]]
+  ExistPriSub2: !Not [!Equals [!Select [1, !Ref PriSubNameList], "null"]]
+  ExistPriSub3: !Not [!Equals [!Select [2, !Ref PriSubNameList], "null"]]
+  ExistPriSub4: !Not [!Equals [!Select [3, !Ref PriSubNameList], "null"]]
+  ExistPriSub5: !Not [!Equals [!Select [4, !Ref PriSubNameList], "null"]]
+  ExistPriSub6: !Not [!Equals [!Select [5, !Ref PriSubNameList], "null"]]
+
 
 Resources:
   VPC:
@@ -106,58 +116,46 @@ Resources:
           Value: !Ref VpcName
   PubSub1: 
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPubSub1
+    Condition: ExistPubSub1
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [0, !Ref PubSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [0, !Ref PubSubAZList]]]
       CidrBlock: !Select [0, !Ref PubSubCidrList]
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Select [0, !Ref PubSubNameList]
-  PubSub2:
+  PubSub2: 
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPubSub2
+    Condition: ExistPubSub2
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [1, !Ref PubSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [1, !Ref PubSubAZList]]]
       CidrBlock: !Select [1, !Ref PubSubCidrList]
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Select [1, !Ref PubSubNameList]
-  PubSub3:
+  PubSub3: 
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPubSub3
+    Condition: ExistPubSub3
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [2, !Ref PubSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [2, !Ref PubSubAZList]]]
       CidrBlock: !Select [2, !Ref PubSubCidrList]
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Select [2, !Ref PubSubNameList]
-  PubSub4:
+  PubSub4: 
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPubSub4
+    Condition: ExistPubSub4
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [3, !Ref PubSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [3, !Ref PubSubAZList]]]
       CidrBlock: !Select [3, !Ref PubSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -167,13 +165,10 @@ Resources:
 
   PriSub1:
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPriSub1
+    Condition: ExistPriSub1
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [0, !Ref PriSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [0, !Ref PriSubAZList]]]
       CidrBlock: !Select [0, !Ref PriSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -182,13 +177,10 @@ Resources:
           Value: !Select [0, !Ref PriSubNameList]
   PriSub2:
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPriSub2
+    Condition: ExistPriSub2
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [1, !Ref PriSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [1, !Ref PriSubAZList]]]
       CidrBlock: !Select [1, !Ref PriSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -197,13 +189,10 @@ Resources:
           Value: !Select [1, !Ref PriSubNameList]
   PriSub3:
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPriSub3
+    Condition: ExistPriSub3
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [2, !Ref PriSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [2, !Ref PriSubAZList]]]
       CidrBlock: !Select [2, !Ref PriSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -212,13 +201,10 @@ Resources:
           Value: !Select [2, !Ref PriSubNameList]
   PriSub4:
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPriSub4
+    Condition: ExistPriSub4
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [3, !Ref PriSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [3, !Ref PriSubAZList]]]
       CidrBlock: !Select [3, !Ref PriSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -227,13 +213,10 @@ Resources:
           Value: !Select [3, !Ref PriSubNameList]
   PriSub5:
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPriSub5
+    Condition: ExistPriSub5
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [4, !Ref PriSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [4, !Ref PriSubAZList]]]
       CidrBlock: !Select [4, !Ref PriSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -242,13 +225,10 @@ Resources:
           Value: !Select [4, !Ref PriSubNameList]
   PriSub6:
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPriSub6
+    Condition: ExistPriSub6
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [5, !Ref PriSubAZList]
+      AvailabilityZone: !Join ['', [!Ref 'AWS::Region', !Select [5, !Ref PriSubAZList]]]
       CidrBlock: !Select [5, !Ref PriSubCidrList]
       Tags:
         - Key: CloudFormationStack
@@ -256,60 +236,55 @@ Resources:
         - Key: Name
           Value: !Select [5, !Ref PriSubNameList]
 
+
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
-    Condition: IsPubSub1
+    Condition: ExistPubSub
     Properties:
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Join
-            - ''
-            - - 'igw-'
-              - !Ref NameInfix
+          Value: !Join ['', ['igw-', !Ref ProjInfix]]
   AttachInternetGateway:
     Type: 'AWS::EC2::VPCGatewayAttachment'
-    Condition: IsPubSub1
+    Condition: ExistPubSub
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
+
   PubRouteTable:
     Type: 'AWS::EC2::RouteTable'
-    Condition: IsPubSub1
+    Condition: ExistPubSub
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'rt-'
-              - !Ref NameInfix
-              - '-pub'
+          Value: !Join ['', ['rt-', !Ref ProjInfix, '-pub']]
   PubSubnetRouteTableAssociation1:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPubSub1
+    Condition: ExistPubSub1
     Properties:
       SubnetId: !Ref PubSub1
       RouteTableId: !Ref PubRouteTable
   PubSubnetRouteTableAssociation2:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPubSub2
+    Condition: ExistPubSub2
     Properties:
       SubnetId: !Ref PubSub2
       RouteTableId: !Ref PubRouteTable
   PubSubnetRouteTableAssociation3:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPubSub3
+    Condition: ExistPubSub3
     Properties:
       SubnetId: !Ref PubSub3
       RouteTableId: !Ref PubRouteTable
   PubSubnetRouteTableAssociation4:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPubSub4
+    Condition: ExistPubSub4
     Properties:
       SubnetId: !Ref PubSub4
       RouteTableId: !Ref PubRouteTable
@@ -317,57 +292,54 @@ Resources:
     Type: 'AWS::EC2::Route'
     DependsOn: AttachInternetGateway
     Properties:
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref PubRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway  
   
+
   PriRouteTable:
     Type: 'AWS::EC2::RouteTable'
-    Condition: IsPriSub1
+    Condition: ExistPriSub
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'rt-'
-              - !Ref NameInfix
-              - '-pri'
+          Value: !Join ['', ['rt-', !Ref ProjInfix, '-pri']]
   PriSubnetRouteTableAssociation1:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPriSub1
+    Condition: ExistPriSub1
     Properties:
       SubnetId: !Ref PriSub1
       RouteTableId: !Ref PriRouteTable
   PriSubnetRouteTableAssociation2:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPriSub2
+    Condition: ExistPriSub2
     Properties:
       SubnetId: !Ref PriSub2
       RouteTableId: !Ref PriRouteTable
   PriSubnetRouteTableAssociation3:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPriSub3
+    Condition: ExistPriSub3
     Properties:
       SubnetId: !Ref PriSub3
       RouteTableId: !Ref PriRouteTable
   PriSubnetRouteTableAssociation4:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPriSub4
+    Condition: ExistPriSub4
     Properties:
       SubnetId: !Ref PriSub4
       RouteTableId: !Ref PriRouteTable 
   PriSubnetRouteTableAssociation5:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPriSub5
+    Condition: ExistPriSub5
     Properties:
       SubnetId: !Ref PriSub5
       RouteTableId: !Ref PriRouteTable
   PriSubnetRouteTableAssociation6:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPriSub6
+    Condition: ExistPriSub6
     Properties:
       SubnetId: !Ref PriSub6
       RouteTableId: !Ref PriRouteTable
@@ -399,9 +371,5 @@ Resources:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'sg-'
-              - !Ref NameInfix
-              - '-default'
+          Value: !Join ['', ['sg-', !Ref ProjInfix, '-default']]
 ...

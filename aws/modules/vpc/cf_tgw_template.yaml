@@ -50,13 +50,16 @@ Parameters:
     ConstraintDescription: "Parameter must only contain "
   PubSubNameList:
     Description: "Name List of Public Subnet"
-    Type: String 
+    Type: CommaDelimitedList
+    Default: null,null,null,null
   PubSubCidrList:
     Description: "CIDR List of Public Subnet"
     Type: CommaDelimitedList
+    Default: null,null,null,null
   PubSubAZList:
     Description: "AZ List of Public Subnet"
     Type: CommaDelimitedList
+    Default: null,null,null,null
   PriSubNum:
     Description: Number of Private Subnet
     Type: Number
@@ -72,7 +75,8 @@ Parameters:
     Type: CommaDelimitedList
 
 Conditions:
-  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
+  ExistPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], "null"]]
+  ExistPubSub2: !Not [!Equals [!Select [1, !Ref PubSubAZList], "null"]]
 
 Resources:
   VPC:
@@ -84,27 +88,22 @@ Resources:
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Ref VpcName
-  PubSub: 
+  PubSub1: 
     Type: 'AWS::EC2::Subnet'
-    Condition: IsPubSub1
+    Condition: ExistPubSub1
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [0, !Ref PubSubAZList]
+      AvailabilityZone: !Join ["", [!Ref 'AWS::Region', !Select [0, !Ref PubSubAZList]]]
       CidrBlock: !Select [0, !Ref PubSubCidrList]
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Select [0, !Ref PubSubNameList]
+
 Outputs:
   Test:
     Description: Test
-    Value: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [0, !Ref PubSubAZList]
+    Value: !Join ["", [!Ref 'AWS::Region', !Select [0, !Ref PubSubAZList]]]
 
 ...

@@ -16,14 +16,12 @@ Description: >-
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - 
-        Label:
+      - Label:
           default: "VPC Configuration"
         Parameters:
           - VpcName
           - VpcCidr
-      - 
-        Label:
+      - Label:
           default: "Subnet Configuration"
         Parameters:
           - PubSubNum
@@ -177,4 +175,12 @@ Resources:
             - - 'sg-'
               - !Ref NameInfix
               - '-default'
+
+
+Outputs:
+  InstanceId:
+    Description: Instance ID
+    Value: !Ref EC2Instance
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceId"
 ...

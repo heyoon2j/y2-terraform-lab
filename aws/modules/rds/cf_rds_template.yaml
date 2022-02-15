@@ -22,12 +22,12 @@ Metadata:
           - VpcName
           - VpcCidr
       - Label:
-          default: "Subnet Configuration"
+          default: "Subnet Group Configuration"
         Parameters:
           - PubSubNum
           - PubSubNameList
       - Label:
-          default: "Subnet Configuration"
+          default: "Parameter Group Configuration"
         Parameters:
           - PubSubNum
           - PubSubNameList
@@ -73,15 +73,133 @@ Conditions:
   IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
 Resources:
-  VPC:
-    Type: 'AWS::EC2::VPC'
-    Properties:
-      CidrBlock: !Ref VpcCidr
-      Tags:
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties: 
+      AllocatedStorage: String
+      AllowMajorVersionUpgrade: Boolean
+      AssociatedRoles: 
+        - DBInstanceRole
+      AutoMinorVersionUpgrade: Boolean
+      AvailabilityZone: String
+      BackupRetentionPeriod: Integer
+      CACertificateIdentifier: String
+      CharacterSetName: String
+      CopyTagsToSnapshot: Boolean
+      DBClusterIdentifier: String
+      DBInstanceClass: String
+      DBInstanceIdentifier: String
+      DBName: String
+      DBParameterGroupName: String
+      DBSecurityGroups: 
+        - String
+      DBSnapshotIdentifier: String
+      DBSubnetGroupName: String
+      DeleteAutomatedBackups: Boolean
+      DeletionProtection: Boolean
+      Domain: String
+      DomainIAMRoleName: String
+      EnableCloudwatchLogsExports: 
+        - String
+      EnableIAMDatabaseAuthentication: Boolean
+      EnablePerformanceInsights: Boolean
+      Engine: String
+      EngineVersion: String
+      Iops: Integer
+      KmsKeyId: String
+      LicenseModel: String
+      MasterUsername: String
+      MasterUserPassword: String
+      MaxAllocatedStorage: Integer
+      MonitoringInterval: Integer
+      MonitoringRoleArn: String
+      MultiAZ: Boolean
+      OptionGroupName: String
+      PerformanceInsightsKMSKeyId: String
+      PerformanceInsightsRetentionPeriod: Integer
+      Port: String
+      PreferredBackupWindow: String
+      PreferredMaintenanceWindow: String
+      ProcessorFeatures: 
+        - ProcessorFeature
+      PromotionTier: Integer
+      PubliclyAccessible: Boolean
+      SourceDBInstanceIdentifier: String
+      SourceRegion: String
+      StorageEncrypted: Boolean
+      StorageType: String
+      Tags: 
+        - Tag
+      Timezone: String
+      UseDefaultProcessorFeatures: Boolean
+      VPCSecurityGroups: 
+        - String
+
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: String
+      DBSubnetGroupName: String
+      SubnetIds: 
+        - String
+      Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Ref VpcName
+          Value: !Select [0, !Ref PubSubNameList]
+
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: String
+      Family: String
+      Parameters: 
+        Key : Value
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Select [0, !Ref PubSubNameList]
+
+  DBOptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties: 
+      EngineName: String
+      MajorEngineVersion: String
+      OptionConfigurations: 
+        - OptionConfiguration
+      OptionGroupDescription: String
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Select [0, !Ref PubSubNameList]
+
+
+DBEngineNameParam:
+  AllowedValues:
+  - mariadb
+  - mysql
+  - oracle-ee
+  - oracle-se2
+  - oracle-se1
+  - oracle-se
+  - postgres
+  - sqlserver-ee
+  - sqlserver-se
+  - sqlserver-ex
+  - sqlserver-web
+
+
+
+
+
+
+
+
+
   PubSub1: 
     Type: 'AWS::EC2::Subnet'
     Condition: IsPubSub1
@@ -181,7 +299,7 @@ Resources:
 Outputs:
   InstanceId:
     Description: RDS ID
-    Value: !Ref EC2Instance
+    Value: !Ref RDSInstance
     Export:
       Name: !Sub "${AWS::StackName}-RdsId"
 ...

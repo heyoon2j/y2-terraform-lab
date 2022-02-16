@@ -1,0 +1,215 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # EC2 Intance Template
+  * For AWS CloudFormation - EC2 Instance Template
+
+  ## Resources
+  1. 
+  2. 
+  3. 
+  4. 
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Instance Configuration"
+        Parameters:
+          - InstanceNameParam
+          - InstanceTypeParam
+          - ImageIdParam
+          - UserDataParam
+
+      - Label:
+          default: "Volume Configuration"
+        Parameters:
+          - RootVolumeTypeParam
+          - RootVolumeDeviceParam
+          - RootVolumeSizeParam
+          - EBSVolumeStackNameListParam
+          - KmsKeyParam
+          
+      - Label:
+          default: "Network Interface Configuration"
+        Parameters:
+          - PublicAssociationParam
+          - SubnetIdParam
+          - IpAddressParam
+          - SecurityGroupIdListParam
+
+      - Label:
+          default: "Other Configuration"
+        Parameters:
+          - ProjInfixParam
+
+#Mappings:
+#  InstanceSpec:
+
+Parameters:
+  InstanceNameParam:
+    Description: "Instance Name"
+    Type: String
+    Default: "y2-test-testServer"
+  InstanceTypeParam:
+    Description: "Instance Type"
+    Type: String
+    Default: "t2.micro"
+  ImageIdParam:
+    Description: "Image ID"
+    Type: String
+    Default: "ami-0729cd65c1a99b0c9"
+
+
+  RootVolumeTypeParam:
+    Description: "Root Volume Type"
+    Type: String
+    Default: "gp2"
+  RootVolumeDeviceParam:
+    Description: "Root Volume Device Name"
+    Type: String
+    Default: "/dev/xvda"
+  RootVolumeSizeParam:
+    Description: "Root Volume Size"
+    Type: Number
+    Default: 10
+  KmsKeyParam:
+    Description: "KMS Key ID"
+    Type: String
+    Default: "null"
+  UserDataParam:
+    Description: "User Data"
+    Type: String
+    Default: >-
+      #!/bin/bash
+      sudo useradd -G wheel sysadmin -m -u 520
+      sudo echo 'koreanre12!' | passwd --stdin sysadmin
+      sudo echo "sysadmin ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/90-cloud-init-users
+      sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      sudo rm /etc/localtime
+      sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+      sudo systemctl restart sshd.service > /dev/null 2>&1;
+
+
+  PublicAssociationParam:
+    Description: "Associate Public IP (true / false)"
+    Type: String
+    Default: "false"
+    AllowedPattern: "^(true|false)$"
+  SubnetIdParam:
+    Description: "Subnet ID"
+    Type: AWS::EC2::Subnet::Id
+  IpAddressParam:
+    Description: "Private IP Address"
+    Type: String
+    AllowedPattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+  SecurityGroupIdListParam:
+    Description: "Security Group ID"
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+
+  ProjInfixParam:
+    Description: Infix of Resource Name
+    Type: String
+    Default: "y2-test"
+
+#Rules:
+
+Conditions:
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+  UsesUserData: !Not [!Equals [!Ref UserDataParam, 'null']] 
+#  IsPublic: !Equals [!Ref PublicAssociationParam, 'true']
+#  ExistEBSVolume1: !Not [!Equals [!Select [0, !Ref AddVolumeStackNameListParam], null]]
+#  ExistEBSVolume2: !Not [!Equals [!Select [1, !Ref AddVolumeStackNameListParam], null]]
+
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypeParam
+      ImageId: !Ref ImageIdParam
+      #LaunchTemplate:
+      #  LicenseConfigurationArn: String
+  
+      NetworkInterfaces: 
+        - DeviceIndex: '0'
+          Description: "Root Network Interface"
+          DeleteOnTermination: true
+          AssociatePublicIpAddress: !Ref PublicAssociationParam
+          GroupSet: !Ref SecurityGroupIdListParam
+          #PrivateIpAddress: String
+          PrivateIpAddresses: 
+            - Primary: true
+              PrivateIpAddress: !Ref IpAddressParam
+          SubnetId: !Ref SubnetIdParam
+          #NetworkInterfaceId: !ImportValue 
+          #  Fn::Sub: ${NetworkInterfaceStackNameParam}-NetworkInterfaceId
+
+      BlockDeviceMappings:
+        # Root Volume
+        - DeviceName: !Ref RootVolumeDeviceParam
+          Ebs:
+            DeleteOnTermination: true
+            VolumeType: !Ref RootVolumeTypeParam
+            VolumeSize: !Ref RootVolumeSizeParam
+            # Iops: Integer
+            # SnapshotId: String
+            Encrypted: !If [IsEncrypted, true, false]
+            KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+#      Volumes: 
+#        - VolumeId: !If
+#            - ExistEBSVolume1
+#              !ImportValue 
+#                Fn::Sub:
+#                  - ${EBSVolumeStackName}-VolumeId
+#                  - { EBSVolumeStackName: !Select [0, !Ref AddVolumeStackNameListParam] }
+#              !Ref AWS::NoValue  
+#          Device: /dev/xvdb
+#        - VolumeId: !If
+#            - ExistEBSVolume2
+#              !ImportValue 
+#                Fn::Sub:
+#                  - ${EBSVolumeStackName}-VolumeId
+#                  - { EBSVolumeStackName: !Select [1, !Ref AddVolumeStackNameListParam] }
+#              !Ref AWS::NoValue
+#          Device: /dev/xvdc
+      #CpuOptions: 
+      #  - CoreCount: Integer
+      #    ThreadsPerCore: Integer
+      #EbsOptimized: Boolean
+      
+      #Tenancy: default | dedicated | host
+      #HostResourceGroupArn: String
+      #HostId: String
+      #Affinity: String
+
+      #IamInstanceProfile: String
+      DisableApiTermination: false
+      InstanceInitiatedShutdownBehavior: stop 
+
+      #KeyName: String
+      Monitoring: false
+      #SsmAssociations: 
+      #  - SsmAssociation      
+      UserData: 
+        Fn::Base64:
+          !Sub |
+            ${UserDataParam}
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref AWS::StackId
+        - Key: Name
+          Value: !Ref InstanceNameParam
+
+
+Outputs:
+  InstanceId:
+    Description: Instance ID
+    Value: !Ref EC2Instance
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceId"
+...

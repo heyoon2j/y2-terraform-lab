@@ -1,0 +1,49 @@
+
+
+
+
+
+
+  Type: AWS::RDS::DBCluster
+  Properties: 
+    AssociatedRoles: 
+      - DBClusterRole
+    AvailabilityZones: 
+      - String
+    BacktrackWindow: Long
+    BackupRetentionPeriod: Integer
+    CopyTagsToSnapshot: Boolean
+    DatabaseName: String
+    DBClusterIdentifier: String
+    DBClusterParameterGroupName: String
+    DBSubnetGroupName: String
+    DeletionProtection: Boolean
+    EnableCloudwatchLogsExports: 
+      - String
+    EnableHttpEndpoint: Boolean
+    EnableIAMDatabaseAuthentication: Boolean
+    Engine: String
+    EngineMode: String
+    EngineVersion: String
+    GlobalClusterIdentifier: String
+    KmsKeyId: String
+    MasterUsername: String
+    MasterUserPassword: String
+    Port: Integer
+    PreferredBackupWindow: String
+    PreferredMaintenanceWindow: String
+    ReplicationSourceIdentifier: String
+    RestoreType: String
+    ScalingConfiguration: 
+      ScalingConfiguration
+    SnapshotIdentifier: String
+    SourceDBClusterIdentifier: String
+    SourceRegion: String
+    StorageEncrypted: Boolean
+    Tags: 
+      - Tag
+    UseLatestRestorableTime: Boolean
+    VpcSecurityGroupIds: 
+      - String
+
+

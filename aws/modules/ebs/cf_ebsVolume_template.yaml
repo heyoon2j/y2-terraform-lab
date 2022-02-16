@@ -1,0 +1,118 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # EBS Volume Template
+  * For AWS CloudFormation - EBS Volume Template
+
+  ## Resources
+  1. EBS Volume
+
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Volume Configuration"
+        Parameters:
+          - VolumeNameParam
+          - AzParam
+          - VolumeTypeParam
+          - VolumeSizeParam
+          - KmsKeyParam
+
+      - Label:
+          default: "Attatchment Configuration"
+        Parameters:
+          - VolumeDeviceParam
+          - InstanceStackNameParam
+
+      - Label:
+          default: "Other Configuration"
+        Parameters:
+          - ProjInfixParam
+
+#Mappings:
+
+Parameters:
+  VolumeNameParam:
+    Description: "Volume Name"
+    Type: String
+    Default: "y2-test-testServer"
+  AzParam:
+    Description: "Availability Zone Name(ex> us-west-1a)"
+    Type: AWS::EC2::AvailabilityZone::Name
+    #Default: 
+  VolumeTypeParam:
+    Description: "Volume Type"
+    Type: String
+    Default: "gp2"
+  VolumeSizeParam:
+    Description: "Volume Size"
+    Type: Number
+    Default: 10
+  KmsKeyParam:
+    Description: "KMS Key ID"
+    Type: String
+    Default: "null"
+
+  VolumeDeviceParam:
+    Description: "Volume Device Name"
+    Type: String
+    Default: /dev/xvdb
+    AllowedPattern: "^/[a-z]{1,}/[a-z]{1,}$"
+  InstanceStackNameParam:
+    Description: "Instance Stack Nmae"
+    Type: String
+    Default: "null"
+
+  ProjInfixParam:
+    Description: Infix of Resource Name
+    Type: String
+    Default: "y2-test"
+
+#Rules:
+
+Conditions:
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, "null"]]
+  AttachesVolume: !Not [!Equals [!Ref InstanceStackNameParam, "null"]]
+
+Resources:
+  EC2Volume:
+    Type: AWS::EC2::Volume
+    Properties:
+      AvailabilityZone: !Ref AzParam
+      VolumeType: !Ref VolumeTypeParam
+      Size: !Ref VolumeSizeParam
+      #Iops: Integer
+      #Throughput: Integer
+      Encrypted: !If [IsEncrypted, true, false]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+      #MultiAttachEnabled: Boolean
+      #SnapshotId: String
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref AWS::StackId
+        - Key: Name
+          Value: !Ref VolumeNameParam
+
+  EC2VolumeAttachment:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: AttachesVolume
+    Properties: 
+      Device: !Ref VolumeDeviceParam
+      InstanceId: !ImportValue
+        Fn::Sub: "${InstanceStackNameParam}-InstanceId"
+      VolumeId: !Ref EC2Volume
+
+
+
+Outputs:
+  VolumeId:
+    Description: EBS Volume ID
+    Value: !Ref EC2Volume
+    Export:
+      Name: !Sub "${AWS::StackName}-VolumeId"
+...

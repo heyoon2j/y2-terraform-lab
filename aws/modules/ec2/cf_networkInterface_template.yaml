@@ -1,0 +1,90 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # EBS Volume Template
+  * For AWS CloudFormation - EBS Volume Template
+
+  ## Resources
+  1. 
+  2. 
+  3. 
+  4. 
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Interface Configuration"
+        Parameters:
+          - NetworkInterfaceNameParam
+          - IpAddressParam
+          - SubnetIdParam
+          - SecurityGroupIdListParam
+          
+      - Label:
+          default: "Other Configuration"
+        Parameters:
+          - ProjInfixParam
+
+#Mappings:
+
+Parameters:
+  NetworkInterfaceNameParam:
+    Description: "Network Interface Name"
+    Type: String
+    Default: "eni-y2-test"
+  IpAddressParam:
+    Description: "IP Address"
+    Type: String
+  SubnetIdParam:
+    Description: "Subnet ID"
+    Type: AWS::EC2::Subnet::Id
+  SecurityGroupIdListParam:
+    Description: "Security Group ID"
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    #Default: 'null,null,null,null'
+
+  ProjInfixParam:
+    Description: Infix of Resource Name
+    Type: String
+    Default: "y2-test"
+
+#Rules:
+
+#Conditions:
+  #ExistSG1: !Not [!Equals [!Ref KmsKeyParam, "null"]]
+
+
+Resources:
+  EC2NetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      Description: "Network Interface"
+      SubnetId: !Ref SubnetIdParam
+      PrivateIpAddresses: 
+        - Primary: true
+          PrivateIpAddress: !Ref IpAddressParam
+      GroupSet: !Ref SecurityGroupIdListParam
+      #InterfaceType: String
+      #Ipv6AddressCount: Integer
+      #Ipv6Addresses: 
+      #  - InstanceIpv6Address
+      #SourceDestCheck: Boolean
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref AWS::StackId
+        - Key: Name
+          Value: !Ref NetworkInterfaceNameParam
+
+
+Outputs:
+  NetworkInterfaceId:
+    Description: Network Interface ID
+    Value: !Ref EC2NetworkInterface
+    Export:
+      Name: !Sub "${AWS::StackName}-NetworkInterfaceId"
+
+...

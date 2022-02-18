@@ -19,52 +19,93 @@ Metadata:
       - Label:
           default: "RDS Configuration"
         Parameters:
-          - VpcName
-          - VpcCidr
+          - DBEngineNameParam
+          - DBEngineVersionParam
       - Label:
           default: "Subnet Group Configuration"
         Parameters:
-          - PubSubNum
-          - PubSubNameList
+          - SubnetGroupNameParam
+          - SubnetGroupNameParam
       - Label:
           default: "Parameter Group Configuration"
         Parameters:
-          - PubSubNum
-          - PubSubNameList
+          - ParameterGroupFamilyParam
+          - ParameterGroupNameParam
+
+      - Label:
+          default: "Option Group Configuration"
+        Parameters:
+          - OptionGroupNameParam
+          - 
+
 
 #Mappings:
 
 
 Parameters:
-  ProjInfix:
-    Description: Infix of Resource Name
+  DBEngineNameParam:
+    Description: 'DB Engine Name'
     Type: String
-    Default: "y2-test"
-  VpcName:
-    Description: Name of VPC
+    AllowedValues:
+      - mariadb
+      - mysql
+      - oracle-ee
+      - oracle-ee-cdb  
+      - oracle-se2
+      - oracle-cdb
+      - postgres
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-ex
+      - sqlserver-web
+  DBEngineVersionParam:
+    Description: 'DB Engine Version'
     Type: String
-    Default: "vpc-y2-test"
-  VpcCidr:
-    Description: CIDR of VPC
+    AllowedValues:
+
+
+  SubnetGroupNameParam:
+    Description: "Subnet Group Name"
     Type: String
-    Default: "10.0.0.0/16"
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
-  PubSubNum:
-    Description: Number of Public Subnet
-    Type: Number
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
-  PubSubNameList:
-    Description: "Name List of Public Subnet"
-    Type: String 
-  PubSubCidrList:
-    Description: "CIDR List of Public Subnet"
-    Type: CommaDelimitedList
-    AllowedPattern: ""
-  PubSubAZList:
-    Description: "AZ List of Public Subnet"
-    Type: CommaDelimitedList
+    Default: "null"
+  SubnetGroupSubnetIdsParam:
+    Description: "Subnet ID"
+    Type: List<AWS::EC2::Subnet::Id>
+
+  ParameterGroupFamilyParam:
+    Description: 'Parameter Group Family'
+    Type: String
+    AllowedValues:
+      - aurora-mysql5.7
+      - aurora-mysql8.0
+      - aurora-postgresql11
+      - aurora-postgresql12
+      - aurora-postgresql13
+      - mysql5.7
+      - mysql8.0
+      - oracle-ee-19
+      - oracle-ee-cdb-19
+      - oracle-se2-19
+      - oracle-se2-cdb-19
+      - postgres11
+      - postgres12
+      - postgres13
+      - postgres14
+      - sqlserver-ee-13.0
+      - sqlserver-se-13.0
+      - sqlserver-ex-13.0
+      - sqlserver-web-13.0
+  ParameterGroupNameParam:
+    Description: 'Parameter Group Name'
+    Type: String
+    Default: "null"
+
+  OptionGroupNameParam:
+    Description: 'Option Group Name'
+    Type: String
+    Default: "null"
+
+
 
 #Rules:
 
@@ -75,13 +116,20 @@ Conditions:
 Resources:
   RDSInstance:
     Type: AWS::RDS::DBInstance
-    Properties: 
-      AllocatedStorage: String
-      AllowMajorVersionUpgrade: Boolean
+    Properties:
+      Engine: String
+      EngineVersion: String 
+      
+      
+      
+      #AllocatedStorage: String
+      #AllowMajorVersionUpgrade: Boolean
       AssociatedRoles: 
         - DBInstanceRole
-      AutoMinorVersionUpgrade: Boolean
+      #AutoMinorVersionUpgrade: Boolean
       AvailabilityZone: String
+      
+
       BackupRetentionPeriod: Integer
       CACertificateIdentifier: String
       CharacterSetName: String
@@ -103,8 +151,7 @@ Resources:
         - String
       EnableIAMDatabaseAuthentication: Boolean
       EnablePerformanceInsights: Boolean
-      Engine: String
-      EngineVersion: String
+
       Iops: Integer
       KmsKeyId: String
       LicenseModel: String
@@ -128,69 +175,57 @@ Resources:
       SourceRegion: String
       StorageEncrypted: Boolean
       StorageType: String
-      Tags: 
-        - Tag
+
       Timezone: String
       UseDefaultProcessorFeatures: Boolean
       VPCSecurityGroups: 
         - String
-
+      Tags: 
+        - Tag        
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
-      DBSubnetGroupDescription: String
-      DBSubnetGroupName: String
-      SubnetIds: 
-        - String
+      DBSubnetGroupDescription: !Sub 'Subnet Group for ${SubnetGroupNameParam}'
+      DBSubnetGroupName: !Ref SubnetGroupNameParam
+      SubnetIds: !Ref SubnetGroupSubnetIdsParam
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Select [0, !Ref PubSubNameList]
-
+          Value: !Ref SubnetGroupSubnetIdsParam
 
   DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties: 
-      Description: String
-      Family: String
-      Parameters: 
-        Key : Value
+      Description: !Sub 'Subnet Group for ${ParameterGroupNameParam}'
+      Family: !Ref ParameterGroupFamilyParam
+      #Parameters: 
+      #  Key : Value
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Select [0, !Ref PubSubNameList]
+          Value: !Ref ParameterGroupNameParam
 
   DBOptionGroup:
     Type: AWS::RDS::OptionGroup
     Properties: 
       EngineName: String
       MajorEngineVersion: String
-      OptionConfigurations: 
-        - OptionConfiguration
-      OptionGroupDescription: String
+      #OptionConfigurations: 
+      #  - OptionConfiguration
+      OptionGroupDescription: !Sub 'Subnet Group for ${OptionGroupNameParam}'
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Select [0, !Ref PubSubNameList]
+          Value: !Ref OptionGroupNameParam
 
 
-DBEngineNameParam:
-  AllowedValues:
-  - mariadb
-  - mysql
-  - oracle-ee
-  - oracle-se2
-  - oracle-se1
-  - oracle-se
-  - postgres
-  - sqlserver-ee
-  - sqlserver-se
-  - sqlserver-ex
-  - sqlserver-web
+
+
+
 
 
 

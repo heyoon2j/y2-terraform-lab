@@ -111,37 +111,67 @@ Parameters:
 
 
 Conditions:
+  IsAurora: 
+
   IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
 Resources:
   RDSInstance:
     Type: AWS::RDS::DBInstance
     Properties:
+      # DB Instance
       Engine: String
       EngineVersion: String 
       
-      
-      
-      #AllocatedStorage: String
-      #AllowMajorVersionUpgrade: Boolean
+      DBInstanceIdentifier: !If [IsAurora, !Ref AWS::NoValue,]
+      DBClusterIdentifier: !If [IsAurora, , !Ref AWS::NoValue]
+      DBInstanceClass: 
+
+      DBName: String      
+      MasterUsername: String
+      MasterUserPassword: String
+      Port: String
+
+
+      # Storage
+      StorageType: String
+      AllocatedStorage: !If [IsAurora, , !Ref AWS::NoValue]
+      MaxAllocatedStorage: Integer      
+      Iops: Integer
+      StorageEncrypted: Boolean
+      KmsKeyId: String
+
+
+      # Network
+      AvailabilityZone: String
+
+
+
+      AllowMajorVersionUpgrade: Boolean
       AssociatedRoles: 
         - DBInstanceRole
-      #AutoMinorVersionUpgrade: Boolean
-      AvailabilityZone: String
+      AutoMinorVersionUpgrade: Boolean
       
 
+      # Backup
       BackupRetentionPeriod: Integer
+      DBSnapshotIdentifier: String
+
+
+      
+      # Option
+
+
+      
       CACertificateIdentifier: String
       CharacterSetName: String
       CopyTagsToSnapshot: Boolean
-      DBClusterIdentifier: String
-      DBInstanceClass: String
-      DBInstanceIdentifier: String
-      DBName: String
+
+
       DBParameterGroupName: String
       DBSecurityGroups: 
         - String
-      DBSnapshotIdentifier: String
+      
       DBSubnetGroupName: String
       DeleteAutomatedBackups: Boolean
       DeletionProtection: Boolean
@@ -152,19 +182,18 @@ Resources:
       EnableIAMDatabaseAuthentication: Boolean
       EnablePerformanceInsights: Boolean
 
-      Iops: Integer
-      KmsKeyId: String
+
+
       LicenseModel: String
-      MasterUsername: String
-      MasterUserPassword: String
-      MaxAllocatedStorage: Integer
+
+
       MonitoringInterval: Integer
       MonitoringRoleArn: String
       MultiAZ: Boolean
       OptionGroupName: String
       PerformanceInsightsKMSKeyId: String
       PerformanceInsightsRetentionPeriod: Integer
-      Port: String
+
       PreferredBackupWindow: String
       PreferredMaintenanceWindow: String
       ProcessorFeatures: 
@@ -173,15 +202,18 @@ Resources:
       PubliclyAccessible: Boolean
       SourceDBInstanceIdentifier: String
       SourceRegion: String
-      StorageEncrypted: Boolean
-      StorageType: String
+
 
       Timezone: String
       UseDefaultProcessorFeatures: Boolean
       VPCSecurityGroups: 
         - String
       Tags: 
-        - Tag        
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref SubnetGroupSubnetIdsParam
+
 
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -222,113 +254,6 @@ Resources:
         - Key: Name
           Value: !Ref OptionGroupNameParam
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  PubSub1: 
-    Type: 'AWS::EC2::Subnet'
-    Condition: IsPubSub1
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: Fn::Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select [0, !Ref PubSubAZList]
-      CidrBlock: !Select [0, !Ref PubSubCidrList]
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Select [0, !Ref PubSubNameList]
-
-  InternetGateway:
-    Type: 'AWS::EC2::InternetGateway'
-    Condition: IsPubSub1
-    Properties:
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Join
-            - ''
-            - - 'igw-'
-              - !Ref NameInfix
-  AttachInternetGateway:
-    Type: 'AWS::EC2::VPCGatewayAttachment'
-    Condition: IsPubSub1
-    Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-
-  PubRouteTable:
-    Type: 'AWS::EC2::RouteTable'
-    Condition: IsPubSub1
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'rt-'
-              - !Ref NameInfix
-              - '-pub'
-  PubSubnetRouteTableAssociation1:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Condition: IsPubSub1
-    Properties:
-      SubnetId: !Ref PubSub1
-      RouteTableId: !Ref PubRouteTable
-  PubRoute:
-    Type: 'AWS::EC2::Route'
-    DependsOn: AttachInternetGateway
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway  
-  
-  TestSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
-    Properties:
-      VpcId: !Ref VPC
-      GroupDescription: Enable SSH access via port 22
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: '2073'
-          ToPort: '2073'
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: '40022'
-          ToPort: '40022'
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'sg-'
-              - !Ref NameInfix
-              - '-default'
 
 
 Outputs:

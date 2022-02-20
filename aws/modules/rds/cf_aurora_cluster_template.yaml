@@ -1,8 +1,8 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  # RDS Template
-  * For AWS CloudFormation - RDS Template
+  # Auror Template
+  * For AWS CloudFormation - Aurora Template
 
   ## Resources
   1. 
@@ -18,18 +18,17 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "RDS Configuration"
+          default: "Aurora Configuration"
         Parameters:
-          - DBIdentifierNameParam
-          - AuroraCheckParam
+          - DBClusterIdentifierParam
           - DBInstanceClassParam
           - EngineParam
           - EngineVersionParam
       - Label:
           default: "Snapshot & Read Replica Configuration"
         Parameters:          
-          - DBSnapshotIdentifierParam
-          - SourceDBInstanceIdentifierParam
+          - SnapshotIdentifierParam
+          - SourceDBClusterIdentifierParam
           - SourceRegionParam
       - Label:
           default: "Database Configuration"
@@ -92,119 +91,50 @@ Metadata:
 
 Mappings:
   DBEngineMap:
-    mariadb:
+    aurora:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery    
+    aurora-mysql:
       Log:
         - audit
         - error
         - general
         - slowquery
-    mysql:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
-    oracle-ee:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-ee-cdb:
-      Log: 
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-se2:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-cdb:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    postgres:
+    aurora-postgresql:
       Log:
         - postgresql
-        - upgrade
-    sqlserver-ee:
-      Log:
-        - agent
-        - error
-    sqlserver-se:
-      Log:
-        - agent
-        - error
-    sqlserver-ex:
-      Log:
-        - agent
-        - error
-    sqlserver-web:
-      Log:
-        - agent
-        - error
+
 
 
 Parameters:
-  DBIdentifierNameParam:
-    Description: 'RDS/Aurora Identifier Name'
+  DBClusterIdentifierParam:
+    Description: 'Aurora Identifier Name'
     Type: String
     Default: 'rds-y2-test'
-  AuroraCheckParam:
-    Description: 'Check db is aurora?'
-    Type: String
-    Default: false
-    AllowedValues:
-      - false
-      - true
-  DBInstanceClassParam:
-    Description: 'DB Instance Class'
-    Type: String
-    Default: db.t3.medium
-    AllowedValues: 
-      - db.t3.small
-      - db.t3.medium
-      - db.r5.large
-      - db.r5.xlarge
-      - db.r5.2xlarge
-      - db.r5.4xlarge
-      - db.r5.8xlarge
-      - db.r5.12xlarge
-      - db.r5.16xlarge
   EngineParam:
     Description: 'DB Engine Name'
     Type: String
     AllowedValues:
-      - mariadb
-      - mysql
-      - oracle-ee
-      - oracle-ee-cdb  
-      - oracle-se2
-      - oracle-cdb
-      - postgres
-      - sqlserver-ee
-      - sqlserver-se
-      - sqlserver-ex
-      - sqlserver-web
+      - aurora
+      - aurora-mysql
+      - aurora-postgresql
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
   
-  DBSnapshotIdentifierParam:
+  SnapshotIdentifierParam:
     Description: 'Snapshot ID. Create db using Snapshot'
     Type: String
     Default: 'null'
-  SourceDBInstanceIdentifierParam:
-    Description: 'Source DB ID, Create Read Replica'
+  SourceDBClusterIdentifierParam:
+    Description: 'Source DB Cluster ID, Create Replica'
     Type: String
     Default: 'null'
   SourceRegionParam:
-    Description: 'Source DB Region, Create Read Replica'
+    Description: 'Source DB Region, Create Replica'
     Type: String
     Default: 'null'
     AllowedValues:
@@ -293,10 +223,10 @@ Parameters:
             
   # Backup
   BackupRetentionPeriodParam:
-    Description: 'Backup Retention Period (0 ~ 35) / Aurora's MinValue 1'
+    Description: 'Backup RetenDBOptionGroup'
     Type: Number
-    Default: 0
-    MinValue: 0
+    Default: 1
+    MinValue: 1
     MaxValue: 35
   PreferredBackupWindowParam:
     Description: 'Backup Window (hh24:mi-hh24:mi)'
@@ -366,12 +296,11 @@ Parameters:
 
 
 Conditions:
-  IsAurora: !Equals [!Ref AuroraCheckParam, true]
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   IsMultiAz: !Equals [!Ref MultiAzParam, true]
 
-  UsesSnapshot: !Not [!Equals [!Ref DBSnapshotIdentifierParam, 'null']]
-  CreatesReadReplica: !Not [!Equals [!Ref SourceDBInstanceIdentifierParam, 'null']]
+  UsesSnapshot: !Not [!Equals [!Ref SnapshotIdentifierParam, 'null']]
+  CreatesReadReplica: !Not [!Equals [!Ref SourceDBClusterIdentifierParam, 'null']]
 
   UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
@@ -379,7 +308,7 @@ Conditions:
 
 Resources:
   RDSInstance:
-    Type: AWS::RDS::DBInstance
+    Type: AWS::RDS::DBCluster
     DependsOn:
       - DBSubnetGroup
       - DBParameterGroup
@@ -387,33 +316,31 @@ Resources:
     Properties:
       # DB Instance
       Engine: !Ref EngineParam
+      EngineMode: 'provisioned'
       EngineVersion: !Ref EngineVersionParam
       
-      DBInstanceIdentifier: !If [IsAurora, !Ref AWS::NoValue, !Ref DBIdentifierNameParam]
-      DBClusterIdentifier: !If [IsAurora, !Ref DBIdentifierNameParam, !Ref AWS::NoValue]
-      DBInstanceClass: !Ref DBInstanceClassParam
+      #GlobalClusterIdentifier: String
+      DBClusterIdentifier: !Ref DBClusterIdentifierParam
 
-      DBName: !Ref DatabaseNameParam
+      DatabaseName: !Ref DatabaseNameParam
       MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
 
-      DBParameterGroupName: !Ref DBParameterGroup
+      DBClusterParameterGroupName: !Ref DBParameterGroup
       OptionGroupName: !Ref DBOptionGroup
 
       #LicenseModel: String
       #EnableIAMDatabaseAuthentication: String
 
-      DBSnapshotIdentifier: !If [UsesSnapshot, !Ref DBSnapshotIdentifierParam, !Ref AWS::NoValue]
-      SourceDBInstanceIdentifier: !If [CreatesReadReplica, !Ref SourceDBInstanceIdentifierParam, !Ref AWS::NoValue]
+      SnapshotIdentifier: !If [UsesSnapshot, !Ref SnapshotIdentifierParam, !Ref AWS::NoValue]
+      SourceDBClusterIdentifier: !If [CreatesReadReplica, !Ref SourceDBClusterIdentifierParam, !Ref AWS::NoValue]
       SourceRegion: !If [CreatesReadReplica, !Ref SourceRegionParam, !Ref AWS::NoValue]
 
 
       # Storage
       StorageType: !Ref StorageTypeParam
-      AllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, !Ref StorageSizeParam]
-      #MaxAllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, Number]
-      #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
+      AllocatedStorage: !Ref StorageSizeParam
       StorageEncrypted: !If [IsEncrypted, true, false]
       KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
@@ -422,7 +349,7 @@ Resources:
       PubliclyAccessible: !Ref PubliclyAccessibleParam
       DBSubnetGroupName: !Ref SubnetGroupNameParam
       AvailabilityZone: !Ref AzParam
-      VPCSecurityGroups: !Ref SecurityGroupListParam
+      VpcSecurityGroupIds: !Ref SecurityGroupListParam
 
 
       # Availability
@@ -449,33 +376,23 @@ Resources:
 
 
       # Option
-      DeletionProtection: false 
+      DeletionProtection: true
 
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
 
       #PreferredMaintenanceWindow: String      
 
-      #Timezone: String
-
       #AssociatedRoles: 
       #  - DBInstanceRole
- 
-      #CACertificateIdentifier: String
-      #CharacterSetName: String
 
-      #Domain: String
-      #DomainIAMRoleName: String
-   
-      #UseDefaultProcessorFeatures: String   
-      #ProcessorFeatures: 
-      #  - ProcessorFeature
+      # EnableHttpEndpoint: Boolean
 
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Ref DBIdentifierNameParam
+          Value: !Ref DBClusterIdentifierParam
 
 
   DBSubnetGroup:

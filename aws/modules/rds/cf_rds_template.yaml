@@ -32,7 +32,7 @@ Metadata:
           - SourceDBInstanceIdentifierParam
           - SourceRegionParam
       - Label:
-          default: "Database Configuration"
+          default: "Storage Configuration"
         Parameters:
           - StorageTypeParam
           - StorageSizeParam
@@ -53,7 +53,7 @@ Metadata:
           - PubliclyAccessibleParam
           - SubnetGroupNameParam
           - AzParam
-          - SecurityGroupListParamSubnetGroupNameParam
+          - SecurityGroupListParam
       - Label:
           default: "Availability Configuration"
         Parameters:

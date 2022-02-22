@@ -1,0 +1,463 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # RDS Template
+  * For AWS CloudFormation - RDS Template
+
+  ## Resources
+  1. 
+  2. DB Storage Type
+    * Only gp2
+  3. 
+  4. 
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "RDS Configuration"
+        Parameters:
+          - DBIdentifierNameParam
+          - DBInstanceClassParam
+          - EngineParam
+          - EngineVersionParam
+      - Label:
+          default: "Snapshot & Read Replica Configuration"
+        Parameters:          
+          - DBSnapshotIdentifierParam
+          - SourceDBInstanceIdentifierParam
+          - SourceRegionParam
+      - Label:
+          default: "Database Configuration"
+        Parameters:
+          - KmsKeyParam
+      - Label:
+          default: "Database Configuration"
+        Parameters:
+          - DatabaseNameParam
+          - MasterUsernameParam
+          - MasterUserPasswordParam
+          - PortParam
+          - ParameterGroupNameParam
+          - OptionGroupNameParam
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - PubliclyAccessibleParam
+          - SubnetGroupNameParam
+          - SecurityGroupListParamSubnetGroupNameParam
+      - Label:
+          default: "Availability Configuration"
+        Parameters:
+          - PromotionTierParam
+      - Label:
+          default: "Backup Configuration"
+        Parameters:
+          - BackupRetentionPeriodParam
+          - PreferredBackupWindowParam
+      - Label:
+          default: "Log & Monitoring Configuration"
+        Parameters:
+          - EnableCloudwatchLogsExportParam
+          - MonitoringIntervalParam
+          - MonitoringRoleArnParam
+
+
+      - Label:
+          default: "Subnet Group Configuration"
+        Parameters:
+          - SubnetGroupSubnetIdsParam
+
+
+      - Label:
+          default: "Parameter Group Configuration"
+        Parameters:
+          - ParameterGroupFamilyParam
+
+
+      - Label:
+          default: "Option Group Configuration"
+        Parameters:
+          - OptionEngineVersionParam
+
+
+Mappings:
+  DBEngineMap:
+    mariadb:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+    mysql:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+    oracle-ee:
+      Log:
+        - alert
+        - audit
+        - listener
+        - trace
+    oracle-ee-cdb:
+      Log: 
+        - alert
+        - audit
+        - listener
+        - trace
+    oracle-se2:
+      Log:
+        - alert
+        - audit
+        - listener
+        - trace
+    oracle-cdb:
+      Log:
+        - alert
+        - audit
+        - listener
+        - trace
+    postgres:
+      Log:
+        - postgresql
+        - upgrade
+    sqlserver-ee:
+      Log:
+        - agent
+        - error
+    sqlserver-se:
+      Log:
+        - agent
+        - error
+    sqlserver-ex:
+      Log:
+        - agent
+        - error
+    sqlserver-web:
+      Log:
+        - agent
+        - error
+
+
+Parameters:
+  DBIdentifierNameParam:
+    Description: 'RDS/Aurora Identifier Name'
+    Type: String
+    Default: 'rds-y2-test'
+  DBInstanceClassParam:
+    Description: 'DB Instance Class'
+    Type: String
+    Default: db.t3.medium
+    AllowedValues: 
+      - db.t3.small
+      - db.t3.medium
+      - db.r5.large
+      - db.r5.xlarge
+      - db.r5.2xlarge
+      - db.r5.4xlarge
+      - db.r5.8xlarge
+      - db.r5.12xlarge
+      - db.r5.16xlarge
+  EngineParam:
+    Description: 'DB Engine Name'
+    Type: String
+    AllowedValues:
+      - mariadb
+      - mysql
+      - oracle-ee
+      - oracle-ee-cdb  
+      - oracle-se2
+      - oracle-cdb
+      - postgres
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-ex
+      - sqlserver-web
+  EngineVersionParam:
+    Description: 'DB Engine Version'
+    Type: String
+  
+  DBSnapshotIdentifierParam:
+    Description: 'Snapshot ID. Create db using Snapshot'
+    Type: String
+    Default: 'null'
+  SourceDBInstanceIdentifierParam:
+    Description: 'Source DB ID, Create Read Replica'
+    Type: String
+    Default: 'null'
+  SourceRegionParam:
+    Description: 'Source DB Region, Create Read Replica'
+    Type: String
+    Default: 'null'
+    AllowedValues:
+      - 'null'
+      - 'us-west-1'
+      - 'us-east-1'
+      - 'ap-northeast-2'
+
+  DatabaseNameParam:
+    Description: 'Database Name'
+    Type: String
+    Default: 'database12'
+  MasterUsernameParam:
+    Description: 'Master Username'
+    Type: String
+    Default: 'test12'
+  MasterUserPasswordParam:
+    Description: 'Master User Password'
+    Type: String
+    Default: 'testtest12!'
+  PortParam:
+    Description: 'Database Port Number'
+    Type: String
+    Default: '5432'
+  ParameterGroupNameParam:
+    Description: 'Parameter Group Name'
+    Type: String
+    Default: 'pg-y2-test'
+  OptionGroupNameParam:
+    Description: 'Option Group Name'
+    Type: String
+    Default: 'og-y2-test'
+
+  PubliclyAccessibleParam:
+    Description: 'Publicly Accessible'
+    Type: String
+    Default: false
+  SubnetGroupNameParam:
+    Description: 'Subnet Group Name'
+    Type: String
+    Default: 'sg-y2-test'
+  SecurityGroupListParam:
+    Description: 'Security Group List'
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+
+  # Storage
+  KmsKeyParam:
+    Description: "KMS Key ID"
+    Type: String
+    Default: "null"
+
+  # Availability
+  PromotionTierParam:
+    Description: 'Promotion Tier(1 > 15) / For Aurora DB'
+    Type: Number
+    Default: 1
+            
+  # Backup
+  BackupRetentionPeriodParam:
+    Description: 'Backup Retention Period (0 ~ 35) / Aurora's MinValue 1'
+    Type: Number
+    Default: 0
+    MinValue: 0
+    MaxValue: 35
+  PreferredBackupWindowParam:
+    Description: 'Backup Window (hh24:mi-hh24:mi)'
+    Type: String
+    Default: 'null'
+
+  # Log
+  #EnableCloudwatchLogsExportParam:
+  #  Description: 'Log List'
+  #  Type: 
+  #  Default:
+  MonitoringIntervalParam:
+    Description: 'Monitoring Interval'
+    Type: Number
+    Default: 0
+    AllowedValues:
+      - 0
+      - 1
+      - 5
+      - 10
+      - 15
+      - 30
+      - 60
+  MonitoringRoleArnParam:
+    Description: 'Monitoring Role ARN'
+    Type: String
+    Default: 'null'
+
+
+  SubnetGroupSubnetIdsParam:
+    Description: "Subnet ID"
+    Type: List<AWS::EC2::Subnet::Id>
+
+
+  ParameterGroupFamilyParam:
+    Description: 'Parameter Group Family'
+    Type: String
+    AllowedValues:
+      - aurora-mysql5.7
+      - aurora-mysql8.0
+      - aurora-postgresql11
+      - aurora-postgresql12
+      - aurora-postgresql13
+      - mysql5.7
+      - mysql8.0
+      - oracle-ee-19
+      - oracle-ee-cdb-19
+      - oracle-se2-19
+      - oracle-se2-cdb-19
+      - postgres11
+      - postgres12
+      - postgres13
+      - postgres14
+      - sqlserver-ee-13.0
+      - sqlserver-se-13.0
+      - sqlserver-ex-13.0
+      - sqlserver-web-13.0
+
+  OptionEngineVersionParam:
+    Description: 'Option Engine Version'
+    Type: String
+    Default: '8.0'
+
+
+
+#Rules:
+
+
+Conditions:
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+
+  UsesSnapshot: !Not [!Equals [!Ref DBSnapshotIdentifierParam, 'null']]
+  CreatesReadReplica: !Not [!Equals [!Ref SourceDBInstanceIdentifierParam, 'null']]
+
+  UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
+  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
+
+
+Resources:
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    DependsOn:
+      - DBSubnetGroup
+      - DBParameterGroup
+      - DBOptionGroup
+    Properties:
+      # DB Instance
+      Engine: !Ref EngineParam
+      
+      DBClusterIdentifier: !Ref DBIdentifierNameParam
+      DBInstanceClass: !Ref DBInstanceClassParam
+
+      DBName: !Ref DatabaseNameParam
+      Port: !Ref PortParam
+
+      DBParameterGroupName: !Ref DBParameterGroup
+      OptionGroupName: !Ref DBOptionGroup
+
+      #LicenseModel: String
+      DBSnapshotIdentifier: !If [UsesSnapshot, !Ref DBSnapshotIdentifierParam, !Ref AWS::NoValue]
+      SourceDBInstanceIdentifier: !If [CreatesReadReplica, !Ref SourceDBInstanceIdentifierParam, !Ref AWS::NoValue]
+      SourceRegion: !If [CreatesReadReplica, !Ref SourceRegionParam, !Ref AWS::NoValue]
+
+
+
+      # Network
+      PubliclyAccessible: !Ref PubliclyAccessibleParam
+      VPCSecurityGroups: !Ref SecurityGroupListParam
+
+
+      # Availability
+      PromotionTier: !Ref PromotionTierParam
+
+     
+      # Backup
+      DeleteAutomatedBackups: true
+
+
+      # Log & Monitoring
+      MonitoringInterval: !Ref MonitoringIntervalParam
+      MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
+
+      EnablePerformanceInsights: false
+      #PerformanceInsightsKMSKeyId: String
+      #PerformanceInsightsRetentionPeriod: Number
+
+
+
+      # Option
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: false
+
+      #PreferredMaintenanceWindow: String      
+
+      #Timezone: String
+
+      #AssociatedRoles: 
+      #  - DBInstanceRole
+ 
+      #CACertificateIdentifier: String
+
+      #Domain: String
+      #DomainIAMRoleName: String
+   
+      #UseDefaultProcessorFeatures: String   
+      #ProcessorFeatures: 
+      #  - ProcessorFeature
+
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref DBIdentifierNameParam
+
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: !Sub 'Subnet Group for ${SubnetGroupNameParam}'
+      DBSubnetGroupName: !Ref SubnetGroupNameParam
+      SubnetIds: !Ref SubnetGroupSubnetIdsParam
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref SubnetGroupNameParam
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: !Sub 'Parameter Group for ${ParameterGroupNameParam}'
+      Family: !Ref ParameterGroupFamilyParam
+      #Parameters: 
+      #  Key : Value
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref ParameterGroupNameParam
+
+  DBOptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties: 
+      EngineName: !Ref EngineParam
+      MajorEngineVersion: !Ref OptionEngineVersionParam
+      #OptionConfigurations: 
+      #  - OptionConfiguration
+      OptionGroupDescription: !Sub 'Option Group for ${OptionGroupNameParam}'
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref OptionGroupNameParam
+
+
+
+Outputs:
+  InstanceId:
+    Description: RDS ID
+    Value: !Ref RDSInstance
+    Export:
+      Name: !Sub "${AWS::StackName}-RdsId"
+...
+
+

@@ -395,8 +395,8 @@ Resources:
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref DBIdentifierNameParam
+        #- Key: Name
+        #  Value: !Ref DBIdentifierNameParam
 
 
   DBSubnetGroup:

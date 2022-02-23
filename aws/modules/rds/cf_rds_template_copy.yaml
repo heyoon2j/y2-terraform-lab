@@ -57,7 +57,6 @@ Metadata:
           default: "Availability Configuration"
         Parameters:
           - MultiAzParam
-          - PromotionTierParam
       - Label:
           default: "Backup Configuration"
         Parameters:
@@ -151,7 +150,7 @@ Mappings:
 
 Parameters:
   DBIdentifierNameParam:
-    Description: 'RDS/Aurora Identifier Name'
+    Description: 'RDS Identifier Name'
     Type: String
     Default: 'rds-y2-test'
   DBInstanceClassParam:
@@ -234,6 +233,9 @@ Parameters:
     Description: 'Publicly Accessible'
     Type: String
     Default: false
+    AllowedValues:
+      - true
+      - false
   SubnetGroupNameParam:
     Description: 'Subnet Group Name'
     Type: String
@@ -278,14 +280,11 @@ Parameters:
     AllowedValues:
       - true
       - false
-  PromotionTierParam:
-    Description: 'Promotion Tier(1 > 15) / For Aurora DB'
-    Type: Number
-    Default: 1
+
             
   # Backup
   BackupRetentionPeriodParam:
-    Description: 'Backup Retention Period (0 ~ 35) / Aurora's MinValue 1'
+    Description: 'Backup Retention Period (0 ~ 35)'
     Type: Number
     Default: 0
     MinValue: 0
@@ -327,11 +326,6 @@ Parameters:
     Description: 'Parameter Group Family'
     Type: String
     AllowedValues:
-      - aurora-mysql5.7
-      - aurora-mysql8.0
-      - aurora-postgresql11
-      - aurora-postgresql12
-      - aurora-postgresql13
       - mysql5.7
       - mysql8.0
       - oracle-ee-19
@@ -383,9 +377,9 @@ Resources:
       DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam
 
-      DBName: !Ref DatabaseNameParam
-      MasterUsername: !Ref MasterUsernameParam
-      MasterUserPassword: !Ref MasterUserPasswordParam
+      DBName: !If [UsesSnapshot,!Ref AWS::NoValue,!Ref DatabaseNameParam]
+      MasterUsername: !If [UsesSnapshot, !Ref AWS::NoValue, !Ref MasterUsernameParam]
+      MasterUserPassword: !If [UsesSnapshot, !Ref AWS::NoValue, !Ref MasterUserPasswordParam]
       Port: !Ref PortParam
 
       DBParameterGroupName: !Ref DBParameterGroup
@@ -404,8 +398,8 @@ Resources:
       AllocatedStorage: !Ref StorageSizeParam
       #MaxAllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, Number]
       #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
-      StorageEncrypted: !If [IsEncrypted, true, false]
-      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+      StorageEncrypted: !If [!Or [IsEncrypted, UsesSnapshot], true, false]
+      KmsKeyId: !If [!Or [IsEncrypted, UsesSnapshot], !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network
@@ -417,11 +411,10 @@ Resources:
 
       # Availability
       MultiAZ: !If [IsMultiAz, true, false]
-      PromotionTier: !If [IsMultiAz, !Ref PromotionTierParam, !Ref AWS::NoValue]
       
      
       # Backup
-      DeleteAutomatedBackups: true
+      DeleteAutomatedBackups: !If [UsesSnapshot, !Ref AWS::NoValue, true]
       BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
       PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
       CopyTagsToSnapshot: false
@@ -429,10 +422,10 @@ Resources:
 
       # Log & Monitoring
       EnableCloudwatchLogsExports: !FindInMap [DBEngineMap, !Ref EngineParam, Log]
-      MonitoringInterval: !Ref MonitoringIntervalParam
-      MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
+      MonitoringInterval: !If [UsesSnapshot, !Ref AWS::NoValue, !Ref MonitoringIntervalParam]
+      MonitoringRoleArn: !If [!Or [UsesMonitoring, UsesSnapshot], !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
 
-      EnablePerformanceInsights: false
+      EnablePerformanceInsights: !If [UsesSnapshot, !Ref AWS::NoValue, false]
       #PerformanceInsightsKMSKeyId: String
       #PerformanceInsightsRetentionPeriod: Number
 

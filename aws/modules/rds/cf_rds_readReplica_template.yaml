@@ -23,29 +23,29 @@ Metadata:
           - DBIdentifierNameParam
           - DBInstanceClassParam
           - EngineParam
-          - EngineVersionParam
+#replica          - EngineVersionParam
       - Label:
           default: "Snapshot & Read Replica Configuration"
         Parameters:          
-          - DBSnapshotIdentifierParam
+#          - DBSnapshotIdentifierParam
           - SourceDBInstanceIdentifierParam
           - SourceRegionParam
       - Label:
           default: "Database Configuration"
         Parameters:
           - StorageTypeParam
-          - StorageSizeParam
-          - IopsParam
+#replica          - StorageSizeParam
+#          - IopsParam
           - KmsKeyParam
       - Label:
           default: "Database Configuration"
         Parameters:
-          - DatabaseNameParam
-          - MasterUsernameParam
-          - MasterUserPasswordParam
+#replica          - DatabaseNameParam
+#replica          - MasterUsernameParam
+#replica          - MasterUserPasswordParam
           - PortParam
-          - ParameterGroupNameParam
-          - OptionGroupNameParam
+#replica          - ParameterGroupNameParam
+#replica          - OptionGroupNameParam
       - Label:
           default: "Network Configuration"
         Parameters:
@@ -53,15 +53,15 @@ Metadata:
           - SubnetGroupNameParam
           - AzParam
           - SecurityGroupListParamSubnetGroupNameParam
-      - Label:
-          default: "Availability Configuration"
-        Parameters:
-          - MultiAzParam
-      - Label:
-          default: "Backup Configuration"
-        Parameters:
-          - BackupRetentionPeriodParam
-          - PreferredBackupWindowParam
+#replica      - Label:
+#replica          default: "Availability Configuration"
+#replica        Parameters:
+#repclia          - MultiAzParam
+#replica      - Label:
+#replica          default: "Backup Configuration"
+#replica        Parameters:
+#replica          - BackupRetentionPeriodParam
+#replica          - PreferredBackupWindowParam
       - Label:
           default: "Log & Monitoring Configuration"
         Parameters:
@@ -69,24 +69,20 @@ Metadata:
           - MonitoringIntervalParam
           - MonitoringRoleArnParam
 
-
       - Label:
           default: "Subnet Group Configuration"
         Parameters:
           - SubnetGroupSubnetIdsParam
 
+#replica      - Label:
+#          default: "Parameter Group Configuration"
+#        Parameters:
+#          - ParameterGroupFamilyParam
 
-      - Label:
-          default: "Parameter Group Configuration"
-        Parameters:
-          - ParameterGroupFamilyParam
-
-
-      - Label:
-          default: "Option Group Configuration"
-        Parameters:
-          - OptionEngineVersionParam
-
+#replica      - Label:
+#          default: "Option Group Configuration"
+#        Parameters:
+#          - OptionEngineVersionParam
 
 Mappings:
   DBEngineMap:
@@ -174,7 +170,7 @@ Parameters:
       - mariadb
       - mysql
       - oracle-ee
-      - oracle-ee-cdb  
+      - oracle-ee-cdb
       - oracle-se2
       - oracle-cdb
       - postgres
@@ -182,18 +178,20 @@ Parameters:
       - sqlserver-se
       - sqlserver-ex
       - sqlserver-web
-  EngineVersionParam:
-    Description: 'DB Engine Version'
-    Type: String
+#replica  EngineVersionParam:
+#    Description: 'DB Engine Version'
+#    Type: String
   
-  DBSnapshotIdentifierParam:
-    Description: 'Snapshot ID. Create db using Snapshot'
-    Type: String
-    Default: 'null'
+#  DBSnapshotIdentifierParam:
+#    Description: 'Snapshot ID. Create db using Snapshot'
+#    Type: String
+#    Default: 'null'
   SourceDBInstanceIdentifierParam:
     Description: 'Source DB ID, Create Read Replica'
     Type: String
     Default: 'null'
+    AllowedPattern: "^[^(null)]$"
+    ConstraintDescription: "Not Null"
   SourceRegionParam:
     Description: 'Source DB Region, Create Read Replica'
     Type: String
@@ -204,30 +202,30 @@ Parameters:
       - 'us-east-1'
       - 'ap-northeast-2'
 
-  DatabaseNameParam:
-    Description: 'Database Name'
-    Type: String
-    Default: 'database12'
-  MasterUsernameParam:
-    Description: 'Master Username'
-    Type: String
-    Default: 'test12'
-  MasterUserPasswordParam:
-    Description: 'Master User Password'
-    Type: String
-    Default: 'testtest12!'
+#replica  DatabaseNameParam:
+#    Description: 'Database Name'
+#    Type: String
+#    Default: 'database12'
+#replica  MasterUsernameParam:
+#    Description: 'Master Username'
+#    Type: String
+#    Default: 'test12'
+#replica  MasterUserPasswordParam:
+#    Description: 'Master User Password'
+#    Type: String
+#    Default: 'testtest12!'
   PortParam:
     Description: 'Database Port Number'
     Type: String
     Default: '5432'
-  ParameterGroupNameParam:
-    Description: 'Parameter Group Name'
-    Type: String
-    Default: 'pg-y2-test'
-  OptionGroupNameParam:
-    Description: 'Option Group Name'
-    Type: String
-    Default: 'og-y2-test'
+#replica  ParameterGroupNameParam:
+#    Description: 'Parameter Group Name'
+#    Type: String
+#    Default: 'pg-y2-test'
+#replica  OptionGroupNameParam:
+#    Description: 'Option Group Name'
+#    Type: String
+#    Default: 'og-y2-test'
 
   PubliclyAccessibleParam:
     Description: 'Publicly Accessible'
@@ -241,8 +239,17 @@ Parameters:
     Type: String
     Default: 'sg-y2-test'
   AzParam:
-    Description: 'Availability Zone'
-    Type: AWS::EC2::AvailabilityZone::Name
+    Description: 'Availability Zone: If you want Multi AZ, Select anyting because this chanes to AWS::NoValue'
+    Type: String      # replica
+    Default: 'null'
+    AllowedValues:
+      - 'null'
+      - 'us-west-1a'
+      - 'us-west-1b'      
+      - 'us-east-1a'
+      - 'us-east-1b'
+      - 'ap-northeast-2a'      
+      - 'ap-northeast-2c'
   SecurityGroupListParam:
     Description: 'Security Group List'
     Type: List<AWS::EC2::SecurityGroup::Id>
@@ -255,50 +262,53 @@ Parameters:
     Default: 'gp2'
     AllowedValues:
       - gp2
-  StorageSizeParam:
-    Description: 'Storage Size'
-    Type: Number
-    Default: 20
-    MinValue: 20
-    MaxValue: 65536
-  IopsParam:
-    Description: 'IOPS'
-    Type: Number
-    Default: 3000
-    MinValue: 1000
-    MaxValue: 80000
+#replica  StorageSizeParam:
+#    Description: 'Storage Size'
+#    Type: Number
+#    Default: 20
+#    MinValue: 20
+#    MaxValue: 65536
+#  IopsParam:
+#    Description: 'IOPS'
+#    Type: Number
+#    Default: 3000
+#    MinValue: 1000
+#    MaxValue: 80000
   KmsKeyParam:
     Description: "KMS Key ID"
     Type: String
     Default: "null"
 
   # Availability
-  MultiAzParam:
-    Description: 'Create Multi AZ DB (true,false)'
+#replica  MultiAzParam:
+#    Description: 'Create Multi AZ DB (true,false)'
+#    Type: String
+#    Default: false
+#    AllowedValues:
+#      - true
+#      - false
+
+            
+  # Backup
+#replica  BackupRetentionPeriodParam:
+#    Description: 'Backup Retention Period (0 ~ 35)'
+#    Type: Number
+#    Default: 0
+#    MinValue: 0
+#    MaxValue: 35
+#replica  PreferredBackupWindowParam:
+#    Description: 'Backup Window (hh24:mi-hh24:mi)'
+#    Type: String
+#   Default: 'null'
+
+  # Log
+  EnableCloudwatchLogsExportParam:
+    Description: 'Log List'
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
-
-            
-  # Backup
-  BackupRetentionPeriodParam:
-    Description: 'Backup Retention Period (0 ~ 35)'
-    Type: Number
-    Default: 0
-    MinValue: 0
-    MaxValue: 35
-  PreferredBackupWindowParam:
-    Description: 'Backup Window (hh24:mi-hh24:mi)'
-    Type: String
-    Default: 'null'
-
-  # Log
-  #EnableCloudwatchLogsExportParam:
-  #  Description: 'Log List'
-  #  Type: 
-  #  Default:
   MonitoringIntervalParam:
     Description: 'Monitoring Interval'
     Type: Number
@@ -322,29 +332,29 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
 
 
-  ParameterGroupFamilyParam:
-    Description: 'Parameter Group Family'
-    Type: String
-    AllowedValues:
-      - mysql5.7
-      - mysql8.0
-      - oracle-ee-19
-      - oracle-ee-cdb-19
-      - oracle-se2-19
-      - oracle-se2-cdb-19
-      - postgres11
-      - postgres12
-      - postgres13
-      - postgres14
-      - sqlserver-ee-13.0
-      - sqlserver-se-13.0
-      - sqlserver-ex-13.0
-      - sqlserver-web-13.0
+#replica  ParameterGroupFamilyParam:
+#    Description: 'Parameter Group Family'
+#   Type: String
+#    AllowedValues:
+#      - mysql5.7
+#      - mysql8.0
+#      - oracle-ee-19
+#      - oracle-ee-cdb-19
+#      - oracle-se2-19
+#      - oracle-se2-cdb-19
+#      - postgres11
+#      - postgres12
+#      - postgres13
+#      - postgres14
+#      - sqlserver-ee-13.0
+#      - sqlserver-se-13.0
+#      - sqlserver-ex-13.0
+#      - sqlserver-web-13.0
 
-  OptionEngineVersionParam:
-    Description: 'Option Engine Version'
-    Type: String
-    Default: '8.0'
+#replica  OptionEngineVersionParam:
+#    Description: 'Option Engine Version'
+#    Type: String
+#    Default: '8.0'
 
 
 
@@ -353,87 +363,81 @@ Parameters:
 
 Conditions:
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
-  IsMultiAz: !Equals [!Ref MultiAzParam, true]
-
-  UsesSnapshot: !Not [!Equals [!Ref DBSnapshotIdentifierParam, 'null']]
-  CreatesReadReplica: !Not [!Equals [!Ref SourceDBInstanceIdentifierParam, 'null']]
-
-  UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
+#replica  IsMultiAz: !Equals [!Ref MultiAzParam, true]
+#replica  IsSqlServer: !Or
+#    - !Equals [!Ref EngineParam, 'sqlserver-ee']
+#    - !Equals [!Ref EngineParam, 'sqlserver-se']
+#    - !Equals [!Ref EngineParam, 'sqlserver-ex']
+#    - !Equals [!Ref EngineParam, 'sqlserver-web']
+#replica  UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
-
+  UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
 
 Resources:
   RDSInstance:
     Type: AWS::RDS::DBInstance
-    DependsOn:
-      - DBSubnetGroup
-      - DBParameterGroup
-      - DBOptionGroup
     Properties:
       # DB Instance
-      Engine: !Ref EngineParam
-      EngineVersion: !Ref EngineVersionParam
+#      Engine: !Ref EngineParam
+#      EngineVersion: !Ref EngineVersionParam
       
       DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam
 
-      DBName: !If [UsesSnapshot,!Ref AWS::NoValue,!Ref DatabaseNameParam]
-      MasterUsername: !If [UsesSnapshot, !Ref AWS::NoValue, !Ref MasterUsernameParam]
-      MasterUserPassword: !If [UsesSnapshot, !Ref AWS::NoValue, !Ref MasterUserPasswordParam]
+#replica      DBName: !If [IsSqlServer,!Ref AWS::NoValue,!Ref DatabaseNameParam]
+#replica      MasterUsername: !Ref MasterUsernameParam
+#replica      MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
 
-      DBParameterGroupName: !Ref DBParameterGroup
-      OptionGroupName: !Ref DBOptionGroup
+#replica      DBParameterGroupName: !Ref DBParameterGroup
+#replica      OptionGroupName: !Ref DBOptionGroup
 
       #LicenseModel: String
       #EnableIAMDatabaseAuthentication: String
 
-      DBSnapshotIdentifier: !If [UsesSnapshot, !Ref DBSnapshotIdentifierParam, !Ref AWS::NoValue]
-      SourceDBInstanceIdentifier: !If [CreatesReadReplica, !Ref SourceDBInstanceIdentifierParam, !Ref AWS::NoValue]
-      SourceRegion: !If [CreatesReadReplica, !Ref SourceRegionParam, !Ref AWS::NoValue]
+      #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+      SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
+      SourceRegion: !Ref SourceRegionParam
 
 
       # Storage
       StorageType: !Ref StorageTypeParam
-      AllocatedStorage: !Ref StorageSizeParam
+#replica      AllocatedStorage: !Ref StorageSizeParam
       #MaxAllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, Number]
       #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
-      StorageEncrypted: !If [!Or [IsEncrypted, UsesSnapshot], true, false]
-      KmsKeyId: !If [!Or [IsEncrypted, UsesSnapshot], !Ref KmsKeyParam, !Ref AWS::NoValue]
+      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network
       PubliclyAccessible: !Ref PubliclyAccessibleParam
       DBSubnetGroupName: !Ref SubnetGroupNameParam
-      AvailabilityZone: !Ref AzParam
+      AvailabilityZone: !Ref AzParam #!If [IsMultiAz, !Ref AWS::NoValue, !Ref AzParam]
       VPCSecurityGroups: !Ref SecurityGroupListParam
 
 
       # Availability
-      MultiAZ: !If [IsMultiAz, true, false]
+#replica      MultiAZ: !If [IsMultiAz, true, false]
       
      
       # Backup
-      DeleteAutomatedBackups: !If [UsesSnapshot, !Ref AWS::NoValue, true]
-      BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
-      PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
+      DeleteAutomatedBackups: true
+#replica      BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
+#replica      PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
       CopyTagsToSnapshot: false
 
 
       # Log & Monitoring
-      EnableCloudwatchLogsExports: !FindInMap [DBEngineMap, !Ref EngineParam, Log]
-      MonitoringInterval: !If [UsesSnapshot, !Ref AWS::NoValue, !Ref MonitoringIntervalParam]
-      MonitoringRoleArn: !If [!Or [UsesMonitoring, UsesSnapshot], !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
-
-      EnablePerformanceInsights: !If [UsesSnapshot, !Ref AWS::NoValue, false]
+      EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
+      MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
+      MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
+      EnablePerformanceInsights: false
       #PerformanceInsightsKMSKeyId: String
       #PerformanceInsightsRetentionPeriod: Number
 
 
-
       # Option
       DeletionProtection: false 
-
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
 
@@ -459,47 +463,6 @@ Resources:
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Ref DBIdentifierNameParam
-
-
-  DBSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties: 
-      DBSubnetGroupDescription: !Sub 'Subnet Group for ${SubnetGroupNameParam}'
-      DBSubnetGroupName: !Ref SubnetGroupNameParam
-      SubnetIds: !Ref SubnetGroupSubnetIdsParam
-      Tags: 
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref SubnetGroupNameParam
-
-  DBParameterGroup:
-    Type: AWS::RDS::DBParameterGroup
-    Properties: 
-      Description: !Sub 'Parameter Group for ${ParameterGroupNameParam}'
-      Family: !Ref ParameterGroupFamilyParam
-      #Parameters: 
-      #  Key : Value
-      Tags: 
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref ParameterGroupNameParam
-
-  DBOptionGroup:
-    Type: AWS::RDS::OptionGroup
-    Properties: 
-      EngineName: !Ref EngineParam
-      MajorEngineVersion: !Ref OptionEngineVersionParam
-      #OptionConfigurations: 
-      #  - OptionConfiguration
-      OptionGroupDescription: !Sub 'Option Group for ${OptionGroupNameParam}'
-      Tags: 
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref OptionGroupNameParam
-
 
 
 Outputs:

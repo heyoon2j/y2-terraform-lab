@@ -1,8 +1,25 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  # RDS Template
-  * For AWS CloudFormation - RDS Template
+  # RDS Snapshot Template
+  * For AWS CloudFormation - RDS Snapshot Template
+  * Delete Parameters using snapshot parameter
+    * CharacterSetName
+    * DBClusterIdentifier
+    * DBName
+    * DeleteAutomatedBackups
+    * EnablePerformanceInsights
+    * KmsKeyId
+    * MasterUsername
+    * MonitoringInterval
+    * MonitoringRoleArn
+    * PerformanceInsightsKMSKeyId
+    * PerformanceInsightsRetentionPeriod
+    * PromotionTier
+    * SourceDBInstanceIdentifier
+    * SourceRegion
+    * StorageEncrypted
+    * Timezone
 
   ## Resources
   1. 
@@ -24,24 +41,24 @@ Metadata:
           - DBInstanceClassParam
           - EngineParam
           - EngineVersionParam
-      #- Label:
-      #    default: "Snapshot & Read Replica Configuration"
-      #  Parameters:          
-      #    - DBSnapshotIdentifierParam
-      #    - SourceDBInstanceIdentifierParam
-      #    - SourceRegionParam
+      - Label:
+          default: "Snapshot & Read Replica Configuration"
+        Parameters:          
+          - DBSnapshotIdentifierParam
+#          - SourceDBInstanceIdentifierParam
+#          - SourceRegionParam
       - Label:
           default: "Database Configuration"
         Parameters:
           - StorageTypeParam
-          - StorageSizeParam
-          #- IopsParam
-          - KmsKeyParam
+#snapshot          - StorageSizeParam
+#          - IopsParam
+#snapshot          - KmsKeyParam
       - Label:
           default: "Database Configuration"
         Parameters:
-          - DatabaseNameParam
-          - MasterUsernameParam
+#snapshot          - DatabaseNameParam
+#snapshot          - MasterUsernameParam
           - MasterUserPasswordParam
           - PortParam
           - ParameterGroupNameParam
@@ -66,8 +83,8 @@ Metadata:
           default: "Log & Monitoring Configuration"
         Parameters:
           - EnableCloudwatchLogsExportParam
-          - MonitoringIntervalParam
-          - MonitoringRoleArnParam
+#snapshot          - MonitoringIntervalParam
+#sanpshot          - MonitoringRoleArnParam
 
 
       - Label:
@@ -186,10 +203,10 @@ Parameters:
     Description: 'DB Engine Version'
     Type: String
   
-#  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ID. Create db using Snapshot'
-#    Type: String
-#    Default: 'null'
+  DBSnapshotIdentifierParam:
+    Description: 'Snapshot ID. Create db using Snapshot'
+    Type: String
+    Default: 'null'
 #  SourceDBInstanceIdentifierParam:
 #    Description: 'Source DB ID, Create Read Replica'
 #    Type: String
@@ -204,14 +221,14 @@ Parameters:
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
 
-  DatabaseNameParam:
-    Description: 'Database Name'
-    Type: String
-    Default: 'database12'
-  MasterUsernameParam:
-    Description: 'Master Username'
-    Type: String
-    Default: 'test12'
+#snapshot  DatabaseNameParam:
+#    Description: 'Database Name'
+#    Type: String
+#    Default: 'null'
+#snapshot  MasterUsernameParam:
+#    Description: 'Master Username'
+#    Type: String
+#    Default: 'null'
   MasterUserPasswordParam:
     Description: 'Master User Password'
     Type: String
@@ -256,22 +273,22 @@ Parameters:
     Default: 'gp2'
     AllowedValues:
       - gp2
-  StorageSizeParam:
-    Description: 'Storage Size'
-    Type: Number
-    Default: 20
-    MinValue: 20
-    MaxValue: 65536
+#replica  StorageSizeParam:
+#    Description: 'Storage Size'
+#    Type: Number
+#    Default: 20
+#    MinValue: 20
+#    MaxValue: 65536
 #  IopsParam:
 #    Description: 'IOPS'
 #    Type: Number
 #    Default: 3000
 #    MinValue: 1000
 #    MaxValue: 80000
-  KmsKeyParam:
-    Description: "KMS Key ID"
-    Type: String
-    Default: "null"
+#snapshot  KmsKeyParam:
+#    Description: "KMS Key ID"
+#    Type: String
+#    Default: "null"
 
   # Availability
   MultiAzParam:
@@ -303,22 +320,22 @@ Parameters:
     AllowedValues:
       - true
       - false
-  MonitoringIntervalParam:
-    Description: 'Monitoring Interval'
-    Type: Number
-    Default: 0
-    AllowedValues:
-      - 0
-      - 1
-      - 5
-      - 10
-      - 15
-      - 30
-      - 60
-  MonitoringRoleArnParam:
-    Description: 'Monitoring Role ARN'
-    Type: String
-    Default: 'null'
+#snapshot  MonitoringIntervalParam:
+#    Description: 'Monitoring Interval'
+#    Type: Number
+#    Default: 0
+#    AllowedValues:
+#      - 0
+#      - 1
+#      - 5
+#      - 10
+#      - 15
+#      - 30
+#      - 60
+#snapshot  MonitoringRoleArnParam:
+#    Description: 'Monitoring Role ARN'
+#    Type: String
+#    Default: 'null'
 
 
   SubnetGroupSubnetIdsParam:
@@ -356,7 +373,7 @@ Parameters:
 
 
 Conditions:
-  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+#  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   IsMultiAz: !Equals [!Ref MultiAzParam, true]
   IsSqlServer: !Or
     - !Equals [!Ref EngineParam, 'sqlserver-ee']
@@ -364,7 +381,7 @@ Conditions:
     - !Equals [!Ref EngineParam, 'sqlserver-ex']
     - !Equals [!Ref EngineParam, 'sqlserver-web']
   UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
-  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
+#  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
 
 Resources:
@@ -378,8 +395,8 @@ Resources:
       DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam
 
-      DBName: !If [IsSqlServer,!Ref AWS::NoValue,!Ref DatabaseNameParam]
-      MasterUsername: !Ref MasterUsernameParam
+#      DBName: !If [IsSqlServer,!Ref AWS::NoValue,!Ref DatabaseNameParam]
+#      MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
 
@@ -389,18 +406,18 @@ Resources:
       #LicenseModel: String
       #EnableIAMDatabaseAuthentication: String
 
-      #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
-      #SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
-      #SourceRegion: !Ref SourceRegionParam
+      DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+#snapshot      SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
+#snapshot      SourceRegion: !Ref SourceRegionParam
 
 
       # Storage
       StorageType: !Ref StorageTypeParam
-      AllocatedStorage: !Ref StorageSizeParam
-      #MaxAllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, Number]
-      #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
-      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
-      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+#replica      AllocatedStorage: !Ref StorageSizeParam
+#      MaxAllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, Number]
+#      Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
+#snapshot      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+#snapshot      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network
@@ -415,7 +432,7 @@ Resources:
       
      
       # Backup
-      DeleteAutomatedBackups: true
+#snapshot      DeleteAutomatedBackups: true
       BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
       PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
       CopyTagsToSnapshot: false
@@ -423,11 +440,11 @@ Resources:
 
       # Log & Monitoring
       EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
-      MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
-      MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
-      EnablePerformanceInsights: false
-      #PerformanceInsightsKMSKeyId: String
-      #PerformanceInsightsRetentionPeriod: Number
+#snapshot      MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
+#snapshot      MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
+#snapshot      EnablePerformanceInsights: false
+#snapshot      PerformanceInsightsKMSKeyId: String
+#snapshot      PerformanceInsightsRetentionPeriod: Number
 
 
       # Option

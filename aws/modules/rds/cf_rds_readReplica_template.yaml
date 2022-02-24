@@ -190,17 +190,13 @@ Parameters:
     Description: 'Source DB ID, Create Read Replica'
     Type: String
     Default: 'null'
-    AllowedPattern: "^[^(null)]$"
-    ConstraintDescription: "Not Null"
+    #AllowedPattern: "^[^(null)]$"
+    #ConstraintDescription: "Not Null"
   SourceRegionParam:
     Description: 'Source DB Region, Create Read Replica'
     Type: String
     Default: 'null'
-    AllowedValues:
-      - 'null'
-      - 'us-west-1'
-      - 'us-east-1'
-      - 'ap-northeast-2'
+
 
 #replica  DatabaseNameParam:
 #    Description: 'Database Name'
@@ -242,14 +238,6 @@ Parameters:
     Description: 'Availability Zone: If you want Multi AZ, Select anyting because this chanes to AWS::NoValue'
     Type: String      # replica
     Default: 'null'
-    AllowedValues:
-      - 'null'
-      - 'us-west-1a'
-      - 'us-west-1b'      
-      - 'us-east-1a'
-      - 'us-east-1b'
-      - 'ap-northeast-2a'      
-      - 'ap-northeast-2c'
   SecurityGroupListParam:
     Description: 'Security Group List'
     Type: List<AWS::EC2::SecurityGroup::Id>
@@ -372,6 +360,7 @@ Conditions:
 #replica  UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
+  SelectsOtherSourceRegion: !Not [!Equals [!Ref SourceRegionParam, 'null']]     #replica
 
 Resources:
   RDSInstance:
@@ -411,7 +400,7 @@ Resources:
 
       # Network
       PubliclyAccessible: !Ref PubliclyAccessibleParam
-      DBSubnetGroupName: !Ref SubnetGroupNameParam
+      DBSubnetGroupName: !If [SelectsOtherSourceRegion, !Ref SubnetGroupNameParam, !Ref AWS::NoValue]
       AvailabilityZone: !Ref AzParam #!If [IsMultiAz, !Ref AWS::NoValue, !Ref AzParam]
       VPCSecurityGroups: !Ref SecurityGroupListParam
 

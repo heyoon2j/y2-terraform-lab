@@ -22,7 +22,7 @@ Metadata:
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
-          - EngineParam
+#replica          - EngineParam
 #replica          - EngineVersionParam
       - Label:
           default: "Snapshot & Read Replica Configuration"
@@ -31,7 +31,7 @@ Metadata:
           - SourceDBInstanceIdentifierParam
           - SourceRegionParam
       - Label:
-          default: "Database Configuration"
+          default: "Storage Configuration"
         Parameters:
           - StorageTypeParam
 #replica          - StorageSizeParam
@@ -52,7 +52,7 @@ Metadata:
           - PubliclyAccessibleParam
           - SubnetGroupNameParam
           - AzParam
-          - SecurityGroupListParamSubnetGroupNameParam
+          - SecurityGroupListParam
 #replica      - Label:
 #replica          default: "Availability Configuration"
 #replica        Parameters:
@@ -63,26 +63,13 @@ Metadata:
 #replica          - BackupRetentionPeriodParam
 #replica          - PreferredBackupWindowParam
       - Label:
-          default: "Log & Monitoring Configuration"
+          default: "Log & Monitoring & Maintenance Configuration"
         Parameters:
           - EnableCloudwatchLogsExportParam
           - MonitoringIntervalParam
           - MonitoringRoleArnParam
+          - PreferredMaintenanceWindowParam
 
-      - Label:
-          default: "Subnet Group Configuration"
-        Parameters:
-          - SubnetGroupSubnetIdsParam
-
-#replica      - Label:
-#          default: "Parameter Group Configuration"
-#        Parameters:
-#          - ParameterGroupFamilyParam
-
-#replica      - Label:
-#          default: "Option Group Configuration"
-#        Parameters:
-#          - OptionEngineVersionParam
 
 Mappings:
   DBEngineMap:
@@ -163,27 +150,27 @@ Parameters:
       - db.r5.8xlarge
       - db.r5.12xlarge
       - db.r5.16xlarge
-  EngineParam:
-    Description: 'DB Engine Name'
-    Type: String
-    AllowedValues:
-      - mariadb
-      - mysql
-      - oracle-ee
-      - oracle-ee-cdb
-      - oracle-se2
-      - oracle-cdb
-      - postgres
-      - sqlserver-ee
-      - sqlserver-se
-      - sqlserver-ex
-      - sqlserver-web
+#replica  EngineParam:
+#    Description: 'DB Engine Name'
+#    Type: String
+#    AllowedValues:
+#      - mariadb
+#      - mysql
+#      - oracle-ee
+#      - oracle-ee-cdb
+#      - oracle-se2
+#      - oracle-cdb
+#      - postgres
+#      - sqlserver-ee
+#      - sqlserver-se
+#      - sqlserver-ex
+#      - sqlserver-web
 #replica  EngineVersionParam:
 #    Description: 'DB Engine Version'
 #    Type: String
   
 #  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ID. Create db using Snapshot'
+#    Description: 'Snapshot ARN. Create db using Snapshot'
 #    Type: String
 #    Default: 'null'
   SourceDBInstanceIdentifierParam:
@@ -235,12 +222,13 @@ Parameters:
     Type: String
     Default: 'sg-y2-test'
   AzParam:
-    Description: 'Availability Zone: If you want Multi AZ, Select anyting because this chanes to AWS::NoValue'
+    Description: 'Availability Zone (ex> ap-northeast-2a)'
     Type: String      # replica
     Default: 'null'
   SecurityGroupListParam:
     Description: 'Security Group List'
-    Type: List<AWS::EC2::SecurityGroup::Id>
+    Type: String
+    Default: 'null'
 
 
   # Storage
@@ -314,35 +302,12 @@ Parameters:
     Type: String
     Default: 'null'
 
+  # Maintenance
+  PreferredMaintenanceWindowParam:
+    Description: 'Maintenance : ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
+    Type: String
+    Defulat: 'sun:01:00-sun:01:30'
 
-  SubnetGroupSubnetIdsParam:
-    Description: "Subnet ID"
-    Type: List<AWS::EC2::Subnet::Id>
-
-
-#replica  ParameterGroupFamilyParam:
-#    Description: 'Parameter Group Family'
-#   Type: String
-#    AllowedValues:
-#      - mysql5.7
-#      - mysql8.0
-#      - oracle-ee-19
-#      - oracle-ee-cdb-19
-#      - oracle-se2-19
-#      - oracle-se2-cdb-19
-#      - postgres11
-#      - postgres12
-#      - postgres13
-#      - postgres14
-#      - sqlserver-ee-13.0
-#      - sqlserver-se-13.0
-#      - sqlserver-ex-13.0
-#      - sqlserver-web-13.0
-
-#replica  OptionEngineVersionParam:
-#    Description: 'Option Engine Version'
-#    Type: String
-#    Default: '8.0'
 
 
 
@@ -377,9 +342,9 @@ Resources:
 #replica      MasterUsername: !Ref MasterUsernameParam
 #replica      MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
+#replica      DBParameterGroupName: !Ref ParameterGroupNameParam
+#replica      OptionGroupName: !Ref OptionGroupNameParam
 
-#replica      DBParameterGroupName: !Ref DBParameterGroup
-#replica      OptionGroupName: !Ref DBOptionGroup
 
       #LicenseModel: String
       #EnableIAMDatabaseAuthentication: String
@@ -413,11 +378,11 @@ Resources:
       DeleteAutomatedBackups: true
 #replica      BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
 #replica      PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
-      CopyTagsToSnapshot: false
+#replica      CopyTagsToSnapshot: !If [UsesBackup, true, !Ref AWS::NoValue]
 
 
       # Log & Monitoring
-      EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
+#      EnableCloudwatchLogsExports:  #!If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
       MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
       MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
       EnablePerformanceInsights: false
@@ -429,8 +394,7 @@ Resources:
       DeletionProtection: false 
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
-
-      #PreferredMaintenanceWindow: String      
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
 
       #Timezone: String
 

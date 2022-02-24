@@ -31,7 +31,7 @@ Metadata:
       #    - SourceDBInstanceIdentifierParam
       #    - SourceRegionParam
       - Label:
-          default: "Database Configuration"
+          default: "Storage Configuration"
         Parameters:
           - StorageTypeParam
           - StorageSizeParam
@@ -52,7 +52,7 @@ Metadata:
           - PubliclyAccessibleParam
           - SubnetGroupNameParam
           - AzParam
-          - SecurityGroupListParamSubnetGroupNameParam
+          - SecurityGroupListParam
       - Label:
           default: "Availability Configuration"
         Parameters:
@@ -63,12 +63,12 @@ Metadata:
           - BackupRetentionPeriodParam
           - PreferredBackupWindowParam
       - Label:
-          default: "Log & Monitoring Configuration"
+          default: "Log & Monitoring & Maintenance Configuration"
         Parameters:
           - EnableCloudwatchLogsExportParam
           - MonitoringIntervalParam
           - MonitoringRoleArnParam
-
+          - PreferredMaintenanceWindowParam
 
       - Label:
           default: "Subnet Group Configuration"
@@ -187,7 +187,7 @@ Parameters:
     Type: String
   
 #  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ID. Create db using Snapshot'
+#    Description: 'Snapshot ARN. Create db using Snapshot'
 #    Type: String
 #    Default: 'null'
 #  SourceDBInstanceIdentifierParam:
@@ -228,6 +228,7 @@ Parameters:
     Description: 'Option Group Name'
     Type: String
     Default: 'og-y2-test'
+
 
   PubliclyAccessibleParam:
     Description: 'Publicly Accessible'
@@ -320,35 +321,12 @@ Parameters:
     Type: String
     Default: 'null'
 
-
-  SubnetGroupSubnetIdsParam:
-    Description: "Subnet ID"
-    Type: List<AWS::EC2::Subnet::Id>
-
-
-  ParameterGroupFamilyParam:
-    Description: 'Parameter Group Family'
+  # Maintenance
+  PreferredMaintenanceWindowParam:
+    Description: 'Maintenance : ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
     Type: String
-    AllowedValues:
-      - mysql5.7
-      - mysql8.0
-      - oracle-ee-19
-      - oracle-ee-cdb-19
-      - oracle-se2-19
-      - oracle-se2-cdb-19
-      - postgres11
-      - postgres12
-      - postgres13
-      - postgres14
-      - sqlserver-ee-13.0
-      - sqlserver-se-13.0
-      - sqlserver-ex-13.0
-      - sqlserver-web-13.0
+    Defulat: 'sun:01:00-sun:01:30'
 
-  OptionEngineVersionParam:
-    Description: 'Option Engine Version'
-    Type: String
-    Default: '8.0'
 
 
 
@@ -383,8 +361,8 @@ Resources:
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
 
-      DBParameterGroupName: !Ref DBParameterGroup
-      OptionGroupName: !Ref DBOptionGroup
+      DBParameterGroupName: !Ref ParameterGroupNameParam
+      OptionGroupName: !Ref OptionGroupNameParam
 
       #LicenseModel: String
       #EnableIAMDatabaseAuthentication: String
@@ -418,7 +396,7 @@ Resources:
       DeleteAutomatedBackups: true
       BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
       PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
-      CopyTagsToSnapshot: false
+      CopyTagsToSnapshot: !If [UsesBackup, true, !Ref AWS::NoValue]
 
 
       # Log & Monitoring
@@ -434,9 +412,7 @@ Resources:
       DeletionProtection: false 
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
-
-      #PreferredMaintenanceWindow: String      
-
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
       #Timezone: String
 
       #AssociatedRoles: 
@@ -457,46 +433,6 @@ Resources:
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Ref DBIdentifierNameParam
-
-
-  DBSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties: 
-      DBSubnetGroupDescription: !Sub 'Subnet Group for ${SubnetGroupNameParam}'
-      DBSubnetGroupName: !Ref SubnetGroupNameParam
-      SubnetIds: !Ref SubnetGroupSubnetIdsParam
-      Tags: 
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref SubnetGroupNameParam
-
-  DBParameterGroup:
-    Type: AWS::RDS::DBParameterGroup
-    Properties: 
-      Description: !Sub 'Parameter Group for ${ParameterGroupNameParam}'
-      Family: !Ref ParameterGroupFamilyParam
-      #Parameters: 
-      #  Key : Value
-      Tags: 
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref ParameterGroupNameParam
-
-  DBOptionGroup:
-    Type: AWS::RDS::OptionGroup
-    Properties:
-      EngineName: !Ref EngineParam
-      MajorEngineVersion: !Ref OptionEngineVersionParam
-      #OptionConfigurations: 
-      #  - OptionConfiguration
-      OptionGroupDescription: !Sub 'Option Group for ${OptionGroupNameParam}'
-      Tags: 
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref OptionGroupNameParam
 
 
 Outputs:

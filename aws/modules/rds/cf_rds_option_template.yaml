@@ -1,0 +1,165 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # RDS Option Template
+  * For AWS CloudFormation - RDS Option Template
+
+  ## Resources
+  1. Subnet Group
+  2. Parameter Group
+  3. Option Group
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Subnet Group Configuration"
+        Parameters:
+          - SubnetGroupNameParam
+          - SubnetGroupSubnetIdsParam
+
+
+      - Label:
+          default: "Parameter Group Configuration"
+        Parameters:
+          - ParameterGroupNameParam
+          - ParameterGroupFamilyParam
+
+
+      - Label:
+          default: "Option Group Configuration"
+        Parameters:
+          - OptionGroupNameParam
+          - OptionEngineParam
+          - OptionEngineVersionParam
+
+
+#Mappings
+
+
+Parameters:
+  SubnetGroupNameParam:
+    Description: 'Subnet Group Name'
+    Type: String
+    Default: 'sg-y2-test'
+  SubnetGroupSubnetIdsParam:
+    Description: "Subnet ID"
+    Type: List<AWS::EC2::Subnet::Id>
+
+  ParameterGroupNameParam:
+    Description: 'Parameter Group Name'
+    Type: String
+    Default: 'pg-y2-test'
+  ParameterGroupFamilyParam:
+    Description: 'Parameter Group Family'
+    Type: String
+    AllowedValues:
+      - mysql5.7
+      - mysql8.0
+      - oracle-ee-19
+      - oracle-ee-cdb-19
+      - oracle-se2-19
+      - oracle-se2-cdb-19
+      - postgres11
+      - postgres12
+      - postgres13
+      - postgres14
+      - sqlserver-ee-13.0
+      - sqlserver-se-13.0
+      - sqlserver-ex-13.0
+      - sqlserver-web-13.0
+
+  OptionGroupNameParam:
+    Description: 'Option Group Name'
+    Type: String
+    Default: 'og-y2-test'
+  OptionEngineParam:
+    Description: 'DB Engine Name'
+    Type: String
+    AllowedValues:
+      - mariadb
+      - mysql
+      - oracle-ee
+      - oracle-ee-cdb
+      - oracle-se2
+      - oracle-cdb
+      - postgres
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-ex
+      - sqlserver-web    
+  OptionEngineVersionParam:
+    Description: 'Option Engine Version'
+    Type: String
+    Default: '8.0'
+
+
+#Rules:
+
+
+#Conditions:
+
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: !Sub 'Subnet Group for ${SubnetGroupNameParam}'
+      DBSubnetGroupName: !Ref SubnetGroupNameParam
+      SubnetIds: !Ref SubnetGroupSubnetIdsParam
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref SubnetGroupNameParam
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: !Sub 'Parameter Group for ${ParameterGroupNameParam}'
+      Family: !Ref ParameterGroupFamilyParam
+      #Parameters: 
+      #  Key : Value
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref ParameterGroupNameParam
+
+  DBOptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties:
+      OptionGroupDescription: !Sub 'Option Group for ${OptionGroupNameParam}'
+      EngineName: !Ref OptionEngineParam
+      MajorEngineVersion: !Ref OptionEngineVersionParam
+      #OptionConfigurations: 
+      #  - OptionConfiguration
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref OptionGroupNameParam
+
+Outputs:
+  DBSubnetGroupId:
+    Description: 'Subnet Group ID'
+    Value: !Ref DBSubnetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-SubnetGroupId"
+
+  DBParameterGroupId:
+    Description: 'Parameter Group ID'
+    Value: !Ref DBParameterGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-ParameterGroupId"
+
+  DBOptionGroupId:
+    Description: 'Option Group ID'
+    Value: !Ref DBOptionGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-OptionGroupId"
+
+...

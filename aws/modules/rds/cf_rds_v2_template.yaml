@@ -146,6 +146,14 @@ Mappings:
       Log:
         - agent
         - error
+  TimezoneMap:
+    sqlserver-:
+      Time:
+        - audit
+        - error
+        - general
+        - slowquery
+    mysql:
 
 
 Parameters:
@@ -341,6 +349,25 @@ Conditions:
     - !Equals [!Ref EngineParam, 'sqlserver-se']
     - !Equals [!Ref EngineParam, 'sqlserver-ex']
     - !Equals [!Ref EngineParam, 'sqlserver-web']
+  IsOracle: !Or
+    - !Equals [!Ref EngineParam, 'oracle-ee']
+    - !Equals [!Ref EngineParam, 'oracle-ee-cdb']  
+    - !Equals [!Ref EngineParam, 'oracle-se2']
+    - !Equals [!Ref EngineParam, 'oracle-cdb']
+    - !Equals [!Ref EngineParam, 'postgres']
+    - !Equals [!Ref EngineParam, 'sqlserver-ee']
+    - !Equals [!Ref EngineParam, 'sqlserver-se']
+    - !Equals [!Ref EngineParam, 'sqlserver-ex']
+    - !Equals [!Ref EngineParam, 'sqlserver-we']
+  
+  UsesTimezone: !And
+    - IsSqlServer
+    - !Not [!Equals [!Ref TimezoneParam, 'null']]
+  UsesCharacterSet: !And
+    - !Or
+      - IsOracle
+      - IsSqlServer
+    - !Not [!Equals [!Ref CharacterSetParam, 'null']]
   UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
@@ -365,12 +392,14 @@ Resources:
       OptionGroupName: !Ref OptionGroupNameParam
 
       #LicenseModel: String
-      #EnableIAMDatabaseAuthentication: String
+      #EnableIAMDatabaseAuthentication: String (Boolean)
       #AssociatedRoles: 
       #  - DBInstanceRole
 
+      Timezone: !If [UsesTimezone, !Ref TimezoneParam, !Ref AWS::NoValue]
+      CharacterSetName: !If [UsesCharacterSet, !Ref CharacterSetParam, !Ref AWS::NoValue]
 
-      # 
+
       #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
       #SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
       #SourceRegion: !Ref SourceRegionParam
@@ -403,7 +432,7 @@ Resources:
       CopyTagsToSnapshot: !If [UsesBackup, true, !Ref AWS::NoValue]
 
 
-      # Log & Monitoring & Maintenance Configuration
+      # Log & Monitoring
       EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
       MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
       MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
@@ -417,11 +446,10 @@ Resources:
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
-      #Timezone: String
 
- 
+
       #CACertificateIdentifier: String
-      #CharacterSetName: String
+      
 
       #Domain: String
       #DomainIAMRoleName: String

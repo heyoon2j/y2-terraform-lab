@@ -364,13 +364,13 @@ Resources:
       DBParameterGroupName: !Ref ParameterGroupNameParam
       OptionGroupName: !Ref OptionGroupNameParam
 
+      #Timezone: String
+      #CACertificateIdentifier: String
+      #CharacterSetName: String
       #LicenseModel: String
-      #EnableIAMDatabaseAuthentication: String
-      #AssociatedRoles: 
-      #  - DBInstanceRole
 
 
-      # 
+      # Snapshot & Read Replica
       #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
       #SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
       #SourceRegion: !Ref SourceRegionParam
@@ -417,15 +417,13 @@ Resources:
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
-      #Timezone: String
 
- 
-      #CACertificateIdentifier: String
-      #CharacterSetName: String
 
+      #EnableIAMDatabaseAuthentication: String
+      #AssociatedRoles: 
+      #  - DBInstanceRole
       #Domain: String
       #DomainIAMRoleName: String
-   
       #UseDefaultProcessorFeatures: String   
       #ProcessorFeatures: 
       #  - ProcessorFeature

@@ -177,6 +177,7 @@ Resources:
               - '-default'
 
 
+
 Outputs:
   InstanceId:
     Description: Instance ID

@@ -70,22 +70,8 @@ Metadata:
           - MonitoringRoleArnParam
           - PreferredMaintenanceWindowParam
 
-      - Label:
-          default: "Subnet Group Configuration"
-        Parameters:
-          - SubnetGroupSubnetIdsParam
+    ParameterLabel:
 
-
-      - Label:
-          default: "Parameter Group Configuration"
-        Parameters:
-          - ParameterGroupFamilyParam
-
-
-      - Label:
-          default: "Option Group Configuration"
-        Parameters:
-          - OptionEngineVersionParam
 
 
 Mappings:
@@ -341,6 +327,12 @@ Conditions:
     - !Equals [!Ref EngineParam, 'sqlserver-se']
     - !Equals [!Ref EngineParam, 'sqlserver-ex']
     - !Equals [!Ref EngineParam, 'sqlserver-web']
+  IsOracle: !Or
+    - !Equals [!Ref EngineParam, 'oracle-ee']
+    - !Equals [!Ref EngineParam, 'oracle-ee-cdb']  
+    - !Equals [!Ref EngineParam, 'oracle-se2']
+    - !Equals [!Ref EngineParam, 'oracle-cdb']
+  UsesSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, !Ref AWS::NoValue]]
   UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
@@ -352,7 +344,8 @@ Resources:
       # DB Instance
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
-      
+      #LicenseModel: String
+
       DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam
 
@@ -365,10 +358,13 @@ Resources:
       OptionGroupName: !Ref OptionGroupNameParam
 
       #Timezone: String
-      #CACertificateIdentifier: String
       #CharacterSetName: String
-      #LicenseModel: String
+      CACertificateIdentifier: !If [UsesSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
 
+      #EnableIAMDatabaseAuthentication: String
+      #AssociatedRoles: 
+      #  - DBInstanceRole
+ 
 
       # Snapshot & Read Replica
       #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
@@ -379,7 +375,7 @@ Resources:
       # Storage
       StorageType: !Ref StorageTypeParam
       AllocatedStorage: !Ref StorageSizeParam
-      #MaxAllocatedStorage: !If [IsAurora, !Ref AWS::NoValue, Number]
+      MaxAllocatedStorage: !If [ !Ref AWS::NoValue, ]
       #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
       StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
       KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
@@ -403,7 +399,7 @@ Resources:
       CopyTagsToSnapshot: !If [UsesBackup, true, !Ref AWS::NoValue]
 
 
-      # Log & Monitoring & Maintenance Configuration
+      # Log & Monitoring
       EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
       MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
       MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
@@ -413,17 +409,14 @@ Resources:
 
 
       # Option
-      DeletionProtection: false 
+      DeletionProtection: true
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
 
-
-      #EnableIAMDatabaseAuthentication: String
-      #AssociatedRoles: 
-      #  - DBInstanceRole
       #Domain: String
       #DomainIAMRoleName: String
+   
       #UseDefaultProcessorFeatures: String   
       #ProcessorFeatures: 
       #  - ProcessorFeature

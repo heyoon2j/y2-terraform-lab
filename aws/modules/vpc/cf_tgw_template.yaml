@@ -75,17 +75,8 @@ Parameters:
     Type: CommaDelimitedList
 
 Conditions:
-<<<<<<< HEAD
-  IsPubSub1: !Not
-    - !Equals
-      - !Select
-        - 0
-        - !Ref PubSubAZList
-      - ""
-=======
   ExistPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], "null"]]
   ExistPubSub2: !Not [!Equals [!Select [1, !Ref PubSubAZList], "null"]]
->>>>>>> f3af85d2687f5611321ef7293ca84ffb9fc54f7a
 
 Resources:
   VPC:
@@ -102,44 +93,17 @@ Resources:
     Condition: ExistPubSub1
     Properties:
       VpcId: !Ref VPC
-<<<<<<< HEAD
-      AvailabilityZone: !Join
-        - ''
-        - - !Ref 'AWS::Region'
-          - !Select
-            - 0
-            - !Ref PubSubAZList
-      CidrBlock: !Select 
-        - 0
-        - !Ref PubSubCidrList
-=======
       AvailabilityZone: !Join ["", [!Ref 'AWS::Region', !Select [0, !Ref PubSubAZList]]]
       CidrBlock: !Select [0, !Ref PubSubCidrList]
->>>>>>> f3af85d2687f5611321ef7293ca84ffb9fc54f7a
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-<<<<<<< HEAD
-          Value: !Select
-            - 0
-            - !Ref PubSubNameList
-Outputs:
-  Test:
-    Description: Test
-    Value: !Join
-      - ""
-      - - !Ref AWS::Region
-        - !Select
-          - 0
-          - !Ref PubSubAZList
-=======
           Value: !Select [0, !Ref PubSubNameList]
 
 Outputs:
   Test:
     Description: Test
     Value: !Join ["", [!Ref 'AWS::Region', !Select [0, !Ref PubSubAZList]]]
->>>>>>> f3af85d2687f5611321ef7293ca84ffb9fc54f7a
 
 ...

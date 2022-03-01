@@ -5,9 +5,11 @@ Description: >-
   * For AWS CloudFormation - RDS Basic Template
 
   ## DB Engine
-  * MariaDB
-  * MySQL
-  * Postgres
+  * MS-SQL
+
+  ## Parameter
+  * TimeZone
+  * CharacterSetNameParam  
 
 
 Metadata:
@@ -21,7 +23,7 @@ Metadata:
           - DBInstanceClassParam
           - EngineParam
           - EngineVersionParam
-        #  - LicenseModelParam
+          - LicenseModelParam
 
       #- 
       #  Label:
@@ -45,14 +47,14 @@ Metadata:
         Label:
           default: "Database Configuration"
         Parameters:
-          - DatabaseNameParam
+#          - DatabaseNameParam
           - MasterUsernameParam
           - MasterUserPasswordParam
           - PortParam
           - ParameterGroupNameParam
           - OptionGroupNameParam
-        #  - TimezoneParam
-        #  - CharacterSetNameParam
+          - TimezoneParam
+          - CharacterSetNameParam
           - CACertificateIdentifierParam
 
       - 
@@ -168,9 +170,7 @@ Parameters:
       - db.m5.4xlarge
       - db.m5.8xlarge
       - db.m5.12xlarge
-      - db.m5.16xlarge
-      - db.t3.small
-      - db.t3.medium
+      - db.m5.16xlarge              
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -182,13 +182,13 @@ Parameters:
     Description: 'DB Engine Name'
     Type: String
     AllowedValues:
-      - mariadb
-      - mysql
-      - oracle-ee
-      - oracle-ee-cdb  
-      - oracle-se2
-      - oracle-cdb
-      - postgres
+#      - mariadb
+#      - mysql
+#      - oracle-ee
+#      - oracle-ee-cdb  
+#      - oracle-se2
+#      - oracle-cdb
+#      - postgres
       - sqlserver-ee
       - sqlserver-se
       - sqlserver-ex
@@ -196,11 +196,12 @@ Parameters:
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
-#  LicenseModelParam:
-#    Description: 'Licent Model'
-#    Type: String
+  LicenseModelParam:
+    Description: 'License Model: license-included(Only)'
+    Type: String
+    Default: license-included
 #    AllowedValues:
-
+#      - license-included
 
 #  DBSnapshotIdentifierParam:
 #    Description: 'Snapshot ARN. Create db using Snapshot'
@@ -220,10 +221,10 @@ Parameters:
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
 
-  DatabaseNameParam:
-    Description: 'Database Name'
-    Type: String
-    Default: 'database12'
+#  DatabaseNameParam:
+#    Description: 'Database Name'
+#    Type: String
+#    Default: 'database12'
   MasterUsernameParam:
     Description: 'Master Username'
     Type: String
@@ -249,16 +250,16 @@ Parameters:
     Type: String
     Default: 'null'
     #AllowedValues: 
-#  TimezoneParam:
-#    Description: ''
-#    Type: String
-#    Default: 
-#    AllowedValues:
-#  CharacterSetNameParam:
-#    Description: ''
-#    Type: String
-#    Default: 
-#    AllowedValues:   
+  TimezoneParam:
+    Description: 'Database Timezone for MS-SQL (Check https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.TimeZone)'
+    Type: String
+    Default: 'Korea Standard Time'
+    #AllowedValues:
+  CharacterSetNameParam:
+    Description: 'Database Character Set for MS-SQL (Check https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/UserGuide/Appendix.SQLServer.CommonDBATasks.Collation.html)'
+    Type: String
+    Default: 'SQL_Latin1_General_CP1_CI_AS'
+    #AllowedValues:   
 
 
   # Network
@@ -389,16 +390,16 @@ Resources:
       DBInstanceClass: !Ref DBInstanceClassParam      
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
-      #LicenseModel: !Ref LicenseModelParam
+      LicenseModel: !Ref LicenseModelParam
 
-      DBName: !Ref DatabaseNameParam
+#      DBName: !Ref DatabaseNameParam
       MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
       DBParameterGroupName: !Ref ParameterGroupNameParam
       OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
-      #Timezone: !Ref TimezoneParam
-      #CharacterSetName: !Ref CharacterSetNameParam
+      Timezone: !Ref TimezoneParam
+      CharacterSetName: !Ref CharacterSetNameParam
       CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
 
       #EnableIAMDatabaseAuthentication: String

@@ -60,8 +60,10 @@ Parameters:
     AllowedValues:
       - mysql5.7
       - mysql8.0
+      - oracle-ee-12.1
       - oracle-ee-19
       - oracle-ee-cdb-19
+      - oracle-se2-12.1
       - oracle-se2-19
       - oracle-se2-cdb-19
       - postgres11

@@ -1,43 +1,48 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  # RDS Template
-  * For AWS CloudFormation - RDS Template
+  # RDS Basci Template
+  * For AWS CloudFormation - RDS Basic Template
 
-  ## Resources
-  1. 
-  2. DB Storage Type
-    * Only gp2
-  3. 
-  4. 
-
-  ## Parameter
+  ## DB Engine
+  * MariaDB
+  * MySQL
+  * Postgres
 
 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - Label:
+      - 
+        Label:
           default: "RDS Configuration"
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
           - EngineParam
           - EngineVersionParam
-      #- Label:
+        #  - LicenseModel
+
+      #- 
+      #  Label:
       #    default: "Snapshot & Read Replica Configuration"
       #  Parameters:          
       #    - DBSnapshotIdentifierParam
       #    - SourceDBInstanceIdentifierParam
       #    - SourceRegionParam
-      - Label:
+
+      - 
+        Label:
           default: "Storage Configuration"
         Parameters:
           - StorageTypeParam
           - StorageSizeParam
           #- IopsParam
+          - MaxAllocatedStorageParam
           - KmsKeyParam
-      - Label:
+
+      - 
+        Label:
           default: "Database Configuration"
         Parameters:
           - DatabaseNameParam
@@ -46,23 +51,34 @@ Metadata:
           - PortParam
           - ParameterGroupNameParam
           - OptionGroupNameParam
-      - Label:
+        #  - TimezoneParam
+        #  - CharacterSetNameParam
+          - CACertificateIdentifierParam
+
+      - 
+        Label:
           default: "Network Configuration"
         Parameters:
           - PubliclyAccessibleParam
           - SubnetGroupNameParam
           - AzParam
           - SecurityGroupListParam
-      - Label:
+
+      - 
+        Label:
           default: "Availability Configuration"
         Parameters:
           - MultiAzParam
-      - Label:
+
+      - 
+        Label:
           default: "Backup Configuration"
         Parameters:
           - BackupRetentionPeriodParam
           - PreferredBackupWindowParam
-      - Label:
+
+      - 
+        Label:
           default: "Log & Monitoring & Maintenance Configuration"
         Parameters:
           - EnableCloudwatchLogsExportParam
@@ -70,8 +86,9 @@ Metadata:
           - MonitoringRoleArnParam
           - PreferredMaintenanceWindowParam
 
-    ParameterLabel:
-
+    #ParameterLabels:
+    #  DBIdentifierNameParam: 
+    #    default: "Which VPC should this be deployed to?"
 
 
 Mappings:
@@ -134,6 +151,7 @@ Mappings:
         - error
 
 
+
 Parameters:
   DBIdentifierNameParam:
     Description: 'RDS Identifier Name'
@@ -171,7 +189,12 @@ Parameters:
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
-  
+#  LicenseModelParam:
+#    Description: 'Licent Model'
+#    Type: String
+#    AllowedValues:
+
+
 #  DBSnapshotIdentifierParam:
 #    Description: 'Snapshot ARN. Create db using Snapshot'
 #    Type: String
@@ -209,15 +232,31 @@ Parameters:
   ParameterGroupNameParam:
     Description: 'Parameter Group Name'
     Type: String
-    Default: 'pg-y2-test'
+    Default: 'null'
   OptionGroupNameParam:
-    Description: 'Option Group Name'
+    Description: 'Option Group Name / If engine is postgres, set null'
     Type: String
-    Default: 'og-y2-test'
+    Default: 'null'
+  CACertificateIdentifierParam:
+    Description: 'CA Certification'
+    Type: String
+    Default: 'null'
+    #AllowedValues: 
+#  TimezoneParam:
+#    Description: ''
+#    Type: String
+#    Defulat: 
+#    AllowedValues:
+#  CharacterSetNameParam:
+#    Description: ''
+#    Type: String
+#    Defulat: 
+#    AllowedValues:   
 
 
+  # Network
   PubliclyAccessibleParam:
-    Description: 'Publicly Accessible'
+    Description: 'Can publicly access db? (ex> true,false)'
     Type: String
     Default: false
     AllowedValues:
@@ -228,7 +267,7 @@ Parameters:
     Type: String
     Default: 'sg-y2-test'
   AzParam:
-    Description: 'Availability Zone: If you want Multi AZ, Select anyting because this chanes to AWS::NoValue'
+    Description: 'Availability Zone / If you check Multi AZ true, this changes to AWS::NoValue'
     Type: AWS::EC2::AvailabilityZone::Name
     Default: 'null'
   SecurityGroupListParam:
@@ -238,13 +277,13 @@ Parameters:
 
   # Storage
   StorageTypeParam:
-    Description: 'Storage Type'
+    Description: 'Storage Type: Only gp2 type'
     Type: String
     Default: 'gp2'
     AllowedValues:
       - gp2
   StorageSizeParam:
-    Description: 'Storage Size'
+    Description: 'Storage Size: 20 ~ 65536 (GiB) '
     Type: Number
     Default: 20
     MinValue: 20
@@ -255,14 +294,20 @@ Parameters:
 #    Default: 3000
 #    MinValue: 1000
 #    MaxValue: 80000
+  MaxAllocatedStorageParam:
+    Description: 'Does DB server increase storage (MinValue: 101GiB / MaxValue: 65536GiB)'
+    Type: Number
+    Default: 0
+    MaxValue: 65536
   KmsKeyParam:
-    Description: "KMS Key ID"
+    Description: "KMS Key ID  / null == No encryption"
     Type: String
     Default: "null"
 
+
   # Availability
   MultiAzParam:
-    Description: 'Create Multi AZ DB (true,false)'
+    Description: 'Does RDS create multi az? (ex> true,false)'
     Type: String
     Default: false
     AllowedValues:
@@ -272,26 +317,27 @@ Parameters:
             
   # Backup
   BackupRetentionPeriodParam:
-    Description: 'Backup Retention Period (0 ~ 35)'
+    Description: 'Backup Retention Period: 0 ~ 35 (Day) / 0 == Not use backup'
     Type: Number
     Default: 0
     MinValue: 0
     MaxValue: 35
   PreferredBackupWindowParam:
-    Description: 'Backup Window (hh24:mi-hh24:mi)'
+    Description: 'Backup Window: hh24:mi-hh24:mi (ex> 00:30-01:30) / Input value, when BackupRetentionPeriodParam is not 0'
     Type: String
     Default: 'null'
 
-  # Log
+
+  # Log & Monitoring & Maintenance Configuration
   EnableCloudwatchLogsExportParam:
-    Description: 'Log List'
+    Description: 'Does db use CloudWatch Logs? (ex> true/false)'
     Type: String
     Default: false
     AllowedValues:
       - true
       - false
   MonitoringIntervalParam:
-    Description: 'Monitoring Interval'
+    Description: 'Monitoring Interval: 0, 1, 5, 10, 15, 30, 60 (Second) / 0 == Not use monitoring'
     Type: Number
     Default: 0
     AllowedValues:
@@ -303,63 +349,50 @@ Parameters:
       - 30
       - 60
   MonitoringRoleArnParam:
-    Description: 'Monitoring Role ARN'
+    Description: 'Monitoring Role ARN / Input value, when MonitoringIntervalParam is not 0'
     Type: String
     Default: 'null'
-
-  # Maintenance
   PreferredMaintenanceWindowParam:
-    Description: 'Maintenance : ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
+    Description: 'Maintenance Setting: ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
     Type: String
-    Defulat: 'sun:01:00-sun:01:30'
-
-
+    Default: 'sun:01:00-sun:01:30'
 
 
 #Rules:
 
 
 Conditions:
+  IncreasesStroage: !Not [!Equals [!Ref MaxAllocatedStorageParam, 0]]
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   IsMultiAz: !Equals [!Ref MultiAzParam, true]
-  IsSqlServer: !Or
-    - !Equals [!Ref EngineParam, 'sqlserver-ee']
-    - !Equals [!Ref EngineParam, 'sqlserver-se']
-    - !Equals [!Ref EngineParam, 'sqlserver-ex']
-    - !Equals [!Ref EngineParam, 'sqlserver-web']
-  IsOracle: !Or
-    - !Equals [!Ref EngineParam, 'oracle-ee']
-    - !Equals [!Ref EngineParam, 'oracle-ee-cdb']  
-    - !Equals [!Ref EngineParam, 'oracle-se2']
-    - !Equals [!Ref EngineParam, 'oracle-cdb']
-  UsesSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, !Ref AWS::NoValue]]
-  UsesBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
+  SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
+  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
+  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
+  SupportsOptionGroup: !Not [!Equals [!Ref EngineParam, 'postgres']]
+
 
 Resources:
   RDSInstance:
     Type: AWS::RDS::DBInstance
     Properties:
       # DB Instance
+      DBInstanceIdentifier: !Ref DBIdentifierNameParam
+      DBInstanceClass: !Ref DBInstanceClassParam      
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
-      #LicenseModel: String
+      #LicenseModel: !Ref LicenseModelParam
 
-      DBInstanceIdentifier: !Ref DBIdentifierNameParam
-      DBInstanceClass: !Ref DBInstanceClassParam
-
-      DBName: !If [IsSqlServer,!Ref AWS::NoValue,!Ref DatabaseNameParam]
+      DBName: !Ref DatabaseNameParam
       MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
-
       DBParameterGroupName: !Ref ParameterGroupNameParam
-      OptionGroupName: !Ref OptionGroupNameParam
-
-      #Timezone: String
-      #CharacterSetName: String
-      CACertificateIdentifier: !If [UsesSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
+      OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
+      #Timezone: !Ref TimezoneParam
+      #CharacterSetName: !Ref CharacterSetNameParam
+      CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
 
       #EnableIAMDatabaseAuthentication: String
       #AssociatedRoles: 
@@ -375,7 +408,7 @@ Resources:
       # Storage
       StorageType: !Ref StorageTypeParam
       AllocatedStorage: !Ref StorageSizeParam
-      MaxAllocatedStorage: !If [ !Ref AWS::NoValue, ]
+      MaxAllocatedStorage: !If [IncreasesStroage, !Ref MaxAllocatedStorageParam, !Ref AWS::NoValue]
       #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
       StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
       KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
@@ -395,14 +428,15 @@ Resources:
       # Backup
       DeleteAutomatedBackups: true
       BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
-      PreferredBackupWindow: !If [UsesBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
-      CopyTagsToSnapshot: !If [UsesBackup, true, !Ref AWS::NoValue]
+      PreferredBackupWindow: !If [SupportsBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
+      CopyTagsToSnapshot: !If [SupportsBackup, true, !Ref AWS::NoValue]
 
 
-      # Log & Monitoring
+      # Log & Monitoring & Maintenance
       EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
       MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
       MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
       EnablePerformanceInsights: false
       #PerformanceInsightsKMSKeyId: String
       #PerformanceInsightsRetentionPeriod: Number
@@ -412,7 +446,6 @@ Resources:
       DeletionProtection: true
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
-      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
 
       #Domain: String
       #DomainIAMRoleName: String

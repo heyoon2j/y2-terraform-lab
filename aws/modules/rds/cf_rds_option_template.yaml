@@ -66,6 +66,7 @@ Parameters:
       - oracle-se2-12.1
       - oracle-se2-19
       - oracle-se2-cdb-19
+      - postgres10
       - postgres11
       - postgres12
       - postgres13

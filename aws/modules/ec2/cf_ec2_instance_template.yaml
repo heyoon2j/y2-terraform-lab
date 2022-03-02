@@ -4,13 +4,19 @@ Description: >-
   # EC2 Intance Template
   * For AWS CloudFormation - EC2 Instance Template
 
+
   ## Resources
   1. 
   2. 
   3. 
   4. 
 
+
   ## Parameter
+  1. 
+  2. 
+  3. 
+
 
 
 Metadata:

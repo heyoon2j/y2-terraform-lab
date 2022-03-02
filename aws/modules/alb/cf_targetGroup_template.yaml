@@ -1,0 +1,193 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # VPC Template
+  * For AWS CloudFormation - VPC Template
+
+  ## Resources
+  1. 
+  2. 
+  3. 
+  4. 
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "VPC Configuration"
+        Parameters:
+          - VpcName
+          - VpcCidr
+      - Label:
+          default: "Subnet Configuration"
+        Parameters:
+          - PubSubNum
+          - PubSubNameList
+          - PubSubCidrList
+          - PriSubNum
+          - PriSubNameList
+          - PriSubCidrList
+Mappings:
+  DBEngineMap:
+    mariadb:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+
+Parameters:
+  ProjInfix:
+    Description: Infix of Resource Name
+    Type: String
+    Default: "y2-test"
+  VpcName:
+    Description: Name of VPC
+    Type: String
+    Default: "vpc-y2-test"
+  VpcCidr:
+    Description: CIDR of VPC
+    Type: String
+    Default: "10.0.0.0/16"
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "
+  PubSubNum:
+    Description: Number of Public Subnet
+    Type: Number
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "
+  PubSubNameList:
+    Description: "Name List of Public Subnet"
+    Type: String 
+  PubSubCidrList:
+    Description: "CIDR List of Public Subnet"
+    Type: CommaDelimitedList
+    AllowedPattern: ""
+  PubSubAZList:
+    Description: "AZ List of Public Subnet"
+    Type: CommaDelimitedList
+
+Rules:
+
+
+
+Conditions:
+  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref VpcName
+  PubSub1: 
+    Type: 'AWS::EC2::Subnet'
+    Condition: IsPubSub1
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: Fn::Join
+        - ''
+        - - !Ref 'AWS::Region'
+          - !Select [0, !Ref PubSubAZList]
+      CidrBlock: !Select [0, !Ref PubSubCidrList]
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Select [0, !Ref PubSubNameList]
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Condition: IsPubSub1
+    Properties:
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Join
+            - ''
+            - - 'igw-'
+              - !Ref NameInfix
+  AttachInternetGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Condition: IsPubSub1
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PubRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Condition: IsPubSub1
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: Fn::Join
+            - ''
+            - - 'rt-'
+              - !Ref NameInfix
+              - '-pub'
+  PubSubnetRouteTableAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Condition: IsPubSub1
+    Properties:
+      SubnetId: !Ref PubSub1
+      RouteTableId: !Ref PubRouteTable
+  PubRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachInternetGateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway  
+  
+  TestSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '2073'
+          ToPort: '2073'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '40022'
+          ToPort: '40022'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: Fn::Join
+            - ''
+            - - 'sg-'
+              - !Ref NameInfix
+              - '-default'
+
+
+
+Outputs:
+  InstanceId:
+    Description: Instance ID
+    Value: !Ref EC2Instance
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceId"
+...

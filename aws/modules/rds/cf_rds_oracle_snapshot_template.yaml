@@ -21,7 +21,7 @@ Metadata:
           - DBInstanceClassParam
           - EngineParam
           - EngineVersionParam
-        #  - LicenseModel
+          - LicenseModelParam
 
       - 
         Label:
@@ -175,17 +175,17 @@ Parameters:
     Description: 'DB Engine Name'
     Type: String
     AllowedValues:
-      - mariadb
-      - mysql
-#      - oracle-ee
-#      - oracle-ee-cdb  
-#      - oracle-se2
-#      - oracle-cdb
-      - postgres
-#      - sqlserver-ee
-#      - sqlserver-se
-#      - sqlserver-ex
-#      - sqlserver-web
+#      - mariadb
+#      - mysql
+      - oracle-ee
+      - oracle-ee-cdb  
+      - oracle-se2
+      - oracle-cdb
+ #     - postgres
+ #     - sqlserver-ee
+ #     - sqlserver-se
+ #     - sqlserver-ex
+ #     - sqlserver-web
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String

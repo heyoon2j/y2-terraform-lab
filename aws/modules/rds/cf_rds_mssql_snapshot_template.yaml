@@ -5,9 +5,6 @@ Description: >-
   * For AWS CloudFormation - RDS Basic Template
 
   ## DB Engine
-  * MariaDB
-  * MySQL
-  * Postgres
   * MS-SQL
 
 
@@ -22,13 +19,13 @@ Metadata:
           - DBInstanceClassParam
           - EngineParam
           - EngineVersionParam
-        #  - LicenseModel
+          - LicenseModelParam
 
-      #- 
-      #  Label:
-      #    default: "Snapshot & Read Replica Configuration"
-      #  Parameters:          
-      #    - DBSnapshotIdentifierParam
+      - 
+        Label:
+          default: "Snapshot & Read Replica Configuration"
+        Parameters:          
+          - DBSnapshotIdentifierParam
       #    - SourceDBInstanceIdentifierParam
       #    - SourceRegionParam
 
@@ -161,10 +158,15 @@ Parameters:
   DBInstanceClassParam:
     Description: 'DB Instance Class'
     Type: String
-    Default: db.t3.medium
+    Default: db.m5.large
     AllowedValues: 
-      - db.t3.small
-      - db.t3.medium
+      - db.m5.large
+      - db.m5.xlarge
+      - db.m5.2xlarge
+      - db.m5.4xlarge
+      - db.m5.8xlarge
+      - db.m5.12xlarge
+      - db.m5.16xlarge              
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -176,13 +178,13 @@ Parameters:
     Description: 'DB Engine Name'
     Type: String
     AllowedValues:
-      - mariadb
-      - mysql
-      - oracle-ee
-      - oracle-ee-cdb  
-      - oracle-se2
-      - oracle-cdb
-      - postgres
+#      - mariadb
+#      - mysql
+#      - oracle-ee
+#      - oracle-ee-cdb  
+#      - oracle-se2
+#      - oracle-cdb
+#      - postgres
       - sqlserver-ee
       - sqlserver-se
       - sqlserver-ex
@@ -190,16 +192,18 @@ Parameters:
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
-#  LicenseModelParam:
-#    Description: 'Licent Model'
-#    Type: String
-#    AllowedValues:
+  LicenseModelParam:
+    Description: 'License Model: license-included(Only)'
+    Type: String
+    Default: license-included
 
 
-#  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ARN. Create db using Snapshot'
-#    Type: String
-#    Default: 'null'
+
+
+  DBSnapshotIdentifierParam:
+    Description: 'Snapshot ARN. Create db using Snapshot'
+    Type: String
+    Default: 'null'
 #  SourceDBInstanceIdentifierParam:
 #    Description: 'Source DB ID, Create Read Replica'
 #    Type: String
@@ -383,7 +387,7 @@ Resources:
       DBInstanceClass: !Ref DBInstanceClassParam      
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
-      #LicenseModel: !Ref LicenseModelParam
+      LicenseModel: !Ref LicenseModelParam
 
 #snapshot      DBName: !Ref DatabaseNameParam
 #snapshot      MasterUsername: !Ref MasterUsernameParam
@@ -401,7 +405,7 @@ Resources:
  
 
       # Snapshot & Read Replica
-      #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+      DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
       #SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
       #SourceRegion: !Ref SourceRegionParam
 

@@ -31,7 +31,13 @@ Metadata:
           - PriSubNameList
           - PriSubCidrList
 Mappings:
-
+  DBEngineMap:
+    mariadb:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
 
 Parameters:
   ProjInfix:

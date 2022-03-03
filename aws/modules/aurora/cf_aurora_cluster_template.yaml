@@ -272,6 +272,7 @@ Conditions:
 
 
 Resources:
+
   AuroraCluster:
     Type: AWS::RDS::DBCluster
     Properties:

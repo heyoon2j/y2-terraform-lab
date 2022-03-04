@@ -4,6 +4,494 @@ Description: >-
   # Aurora Cluster Template
   * For AWS CloudFormation - Aurora Cluster Template
 
+
+  ## DB Engine
+  * MySQL
+  * Postgres
+
+
+  ## Resources
+  1. 
+  2. DB Storage Type
+    * Only gp2
+  3. 
+  4. 
+
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: "RDS Configuration"
+        Parameters:
+          - DBClusterIdentifierParam
+          - DBInstanceClassParam
+          - EngineParam
+          - EngineVersionParam
+        #  - LicenseModelParam
+
+      #- 
+      #  Label:
+      #    default: "Snapshot & Read Replica Configuration"
+      #  Parameters:          
+      #    - DBSnapshotIdentifierParam
+      #    - SourceDBInstanceIdentifierParam
+      #    - SourceRegionParam
+
+      - 
+        Label:
+          default: "Storage Configuration"
+        Parameters:
+          - StorageTypeParam
+          - StorageSizeParam
+          #- IopsParam
+          - MaxAllocatedStorageParam
+          - KmsKeyParam
+
+      - 
+        Label:
+          default: "Database Configuration"
+        Parameters:
+          - DatabaseNameParam
+          - MasterUsernameParam
+          - MasterUserPasswordParam
+          - PortParam
+          - ParameterGroupNameParam
+          - OptionGroupNameParam
+        #  - TimezoneParam
+        #  - CharacterSetNameParam
+          - CACertificateIdentifierParam
+
+      - 
+        Label:
+          default: "Network Configuration"
+        Parameters:
+          - PubliclyAccessibleParam
+          - SubnetGroupNameParam
+          - AzParam
+          - SecurityGroupListParam
+
+      - 
+        Label:
+          default: "Availability Configuration"
+        Parameters:
+          - MultiAzParam
+
+      - 
+        Label:
+          default: "Backup Configuration"
+        Parameters:
+          - BackupRetentionPeriodParam
+          - PreferredBackupWindowParam
+
+      - 
+        Label:
+          default: "Log & Monitoring & Maintenance Configuration"
+        Parameters:
+          - EnableCloudwatchLogsExportParam
+          - MonitoringIntervalParam
+          - MonitoringRoleArnParam
+          - PreferredMaintenanceWindowParam
+
+    #ParameterLabels:
+    #  DBClusterIdentifierParam: 
+    #    default: "Which VPC should this be deployed to?"
+
+
+Mappings:
+  DBEngineMap:
+    mariadb:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+    mysql:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+    oracle-ee:
+      Log:
+        - alert
+        - audit
+        - listener
+        - trace
+    oracle-ee-cdb:
+      Log: 
+        - alert
+        - audit
+        - listener
+        - trace
+    oracle-se2:
+      Log:
+        - alert
+        - audit
+        - listener
+        - trace
+    oracle-cdb:
+      Log:
+        - alert
+        - audit
+        - listener
+        - trace
+    postgres:
+      Log:
+        - postgresql
+        - upgrade
+    sqlserver-ee:
+      Log:
+        - agent
+        - error
+    sqlserver-se:
+      Log:
+        - agent
+        - error
+    sqlserver-ex:
+      Log:
+        - agent
+        - error
+    sqlserver-web:
+      Log:
+        - agent
+        - error
+
+
+Parameters:
+  DBClusterIdentifierParam:
+    Description: 'Aurora Cluster Name'
+    Type: String
+    Default: 'rds-y2-test'
+  DBInstanceClassParam:
+    Description: 'DB Instance Class'
+    Type: String
+    Default: db.m5.large
+    AllowedValues: 
+      - db.m5.large
+      - db.m5.xlarge
+      - db.m5.2xlarge
+      - db.m5.4xlarge
+      - db.m5.8xlarge
+      - db.m5.12xlarge
+      - db.m5.16xlarge
+      - db.t3.small
+      - db.t3.medium
+      - db.r5.large
+      - db.r5.xlarge
+      - db.r5.2xlarge
+      - db.r5.4xlarge
+      - db.r5.8xlarge
+      - db.r5.12xlarge
+      - db.r5.16xlarge
+  EngineParam:
+    Description: 'DB Engine Name'
+    Type: String
+    AllowedValues:
+      - mariadb
+      - mysql
+      - oracle-ee
+      - oracle-ee-cdb  
+      - oracle-se2
+      - oracle-cdb
+      - postgres
+      - sqlserver-ee
+      - sqlserver-se
+      - sqlserver-ex
+      - sqlserver-web
+  EngineVersionParam:
+    Description: 'DB Engine Version'
+    Type: String
+#  LicenseModelParam:
+#    Description: 'Licent Model'
+#    Type: String
+#    AllowedValues:
+
+
+#  DBSnapshotIdentifierParam:
+#    Description: 'Snapshot ARN. Create db using Snapshot'
+#    Type: String
+#    Default: 'null'
+#  SourceDBInstanceIdentifierParam:
+#    Description: 'Source DB ID, Create Read Replica'
+#    Type: String
+#    Default: 'null'
+#  SourceRegionParam:
+#    Description: 'Source DB Region, Create Read Replica'
+#    Type: String
+#    Default: 'null'
+#    AllowedValues:
+#      - 'null'
+#      - 'us-west-1'
+#      - 'us-east-1'
+#      - 'ap-northeast-2'
+
+  DatabaseNameParam:
+    Description: 'Database Name'
+    Type: String
+    Default: 'database12'
+  MasterUsernameParam:
+    Description: 'Master Username'
+    Type: String
+    Default: 'test12'
+  MasterUserPasswordParam:
+    Description: 'Master User Password'
+    Type: String
+    Default: 'testtest12!'
+  PortParam:
+    Description: 'Database Port Number'
+    Type: String
+    Default: '5432'
+  ParameterGroupNameParam:
+    Description: 'Parameter Group Name'
+    Type: String
+    Default: 'null'
+  OptionGroupNameParam:
+    Description: 'Option Group Name / If engine is postgres, set null'
+    Type: String
+    Default: 'null'
+  CACertificateIdentifierParam:
+    Description: 'CA Certification / null == rds-ca-2019'
+    Type: String
+    Default: 'null'
+    #AllowedValues: 
+#  TimezoneParam:
+#    Description: ''
+#    Type: String
+#    Default: 
+#    AllowedValues:
+#  CharacterSetNameParam:
+#    Description: ''
+#    Type: String
+#    Default: 
+#    AllowedValues:   
+
+
+  # Network
+  PubliclyAccessibleParam:
+    Description: 'Can publicly access db? (ex> true,false)'
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  SubnetGroupNameParam:
+    Description: 'Subnet Group Name'
+    Type: String
+    Default: 'sg-y2-test'
+  AzParam:
+    Description: 'Availability Zone / If you check Multi AZ true, this changes to AWS::NoValue'
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: 'null'
+  SecurityGroupListParam:
+    Description: 'Security Group List'
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+
+  # Storage
+  StorageTypeParam:
+    Description: 'Storage Type: Only gp2 type'
+    Type: String
+    Default: 'gp2'
+    AllowedValues:
+      - gp2
+  StorageSizeParam:
+    Description: 'Storage Size: 20 ~ 65536 (GiB) '
+    Type: Number
+    Default: 20
+    MinValue: 20
+    MaxValue: 65536
+#  IopsParam:
+#    Description: 'IOPS'
+#    Type: Number
+#    Default: 3000
+#    MinValue: 1000
+#    MaxValue: 80000
+  MaxAllocatedStorageParam:
+    Description: 'Does DB server increase storage (MinValue: 101GiB / MaxValue: 65536GiB)'
+    Type: Number
+    Default: 0
+    MaxValue: 65536
+  KmsKeyParam:
+    Description: "KMS Key ID  / null == No encryption"
+    Type: String
+    Default: "null"
+
+
+  # Availability
+  MultiAzParam:
+    Description: 'Does RDS create multi az? (ex> true,false)'
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+            
+  # Backup
+  BackupRetentionPeriodParam:
+    Description: 'Backup Retention Period: 0 ~ 35 (Day) / 0 == Not use backup'
+    Type: Number
+    Default: 0
+    MinValue: 0
+    MaxValue: 35
+  PreferredBackupWindowParam:
+    Description: 'Backup Window(UTC): hh24:mi-hh24:mi (ex> 00:30-01:30) / Input value, when BackupRetentionPeriodParam is not 0'
+    Type: String
+    Default: 'null'
+
+
+  # Log & Monitoring & Maintenance Configuration
+  EnableCloudwatchLogsExportParam:
+    Description: 'Does db use CloudWatch Logs? (ex> true/false)'
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  MonitoringIntervalParam:
+    Description: 'Monitoring Interval: 0, 1, 5, 10, 15, 30, 60 (Second) / 0 == Not use monitoring'
+    Type: Number
+    Default: 0
+    AllowedValues:
+      - 0
+      - 1
+      - 5
+      - 10
+      - 15
+      - 30
+      - 60
+  MonitoringRoleArnParam:
+    Description: 'Monitoring Role ARN / Input value, when MonitoringIntervalParam is not 0'
+    Type: String
+    Default: 'null'
+  PreferredMaintenanceWindowParam:
+    Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
+    Type: String
+    Default: 'sun:01:00-sun:01:30'
+
+
+#Rules:
+
+
+Conditions:
+  IncreasesStroage: !Not [!Equals [!Ref MaxAllocatedStorageParam, 0]]
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+  IsMultiAz: !Equals [!Ref MultiAzParam, true]
+  SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
+  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
+  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
+  UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
+  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
+  SupportsOptionGroup: !Not [!Equals [!Ref EngineParam, 'postgres']]
+
+
+Resources:
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      # DB Instance
+      DBClusterIdentifier: !Ref DBClusterIdentifierParam
+      DBInstanceClass: !Ref DBInstanceClassParam      
+      Engine: !Ref EngineParam
+      EngineVersion: !Ref EngineVersionParam
+      #LicenseModel: !Ref LicenseModelParam
+
+      DBName: !Ref DatabaseNameParam
+      MasterUsername: !Ref MasterUsernameParam
+      MasterUserPassword: !Ref MasterUserPasswordParam
+      Port: !Ref PortParam
+      DBParameterGroupName: !Ref ParameterGroupNameParam
+      OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
+      #Timezone: !Ref TimezoneParam
+      #CharacterSetName: !Ref CharacterSetNameParam
+      CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
+
+      #EnableIAMDatabaseAuthentication: String
+      #AssociatedRoles: 
+      #  - DBInstanceRole
+ 
+
+      # Snapshot & Read Replica
+      #DBSnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+      #SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifierParam
+      #SourceRegion: !Ref SourceRegionParam
+
+
+      # Storage
+      StorageType: !Ref StorageTypeParam
+      AllocatedStorage: !Ref StorageSizeParam
+      MaxAllocatedStorage: !If [IncreasesStroage, !Ref MaxAllocatedStorageParam, !Ref AWS::NoValue]
+      #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
+      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+
+
+      # Network
+      PubliclyAccessible: !Ref PubliclyAccessibleParam
+      DBSubnetGroupName: !Ref SubnetGroupNameParam
+      AvailabilityZone: !If [IsMultiAz, !Ref AWS::NoValue, !Ref AzParam]
+      VPCSecurityGroups: !Ref SecurityGroupListParam
+
+
+      # Availability
+      MultiAZ: !If [IsMultiAz, true, false]
+      
+     
+      # Backup
+      DeleteAutomatedBackups: true
+      BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
+      PreferredBackupWindow: !If [SupportsBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
+      CopyTagsToSnapshot: !If [SupportsBackup, true, !Ref AWS::NoValue]
+
+
+      # Log & Monitoring & Maintenance
+      EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
+      MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
+      MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
+      EnablePerformanceInsights: false
+      #PerformanceInsightsKMSKeyId: String
+      #PerformanceInsightsRetentionPeriod: Number
+
+
+      # Option
+      DeletionProtection: true
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: false
+
+      #Domain: String
+      #DomainIAMRoleName: String
+   
+      #UseDefaultProcessorFeatures: String   
+      #ProcessorFeatures: 
+      #  - ProcessorFeature
+
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref DBClusterIdentifier
+
+
+Outputs:
+  InstanceId:
+    Description: RDS ID
+    Value: !Ref RDSInstance
+    Export:
+      Name: !Sub "${AWS::StackName}-RdsId"
+
+
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # Aurora Cluster Template
+  * For AWS CloudFormation - Aurora Cluster Template
+
   ## Resources
   1. 
   2. DB Storage Type
@@ -272,25 +760,29 @@ Conditions:
 
 
 Resources:
+
   AuroraCluster:
     Type: AWS::RDS::DBCluster
     Properties:
-      # DB Instance
-      Engine: !Ref EngineParam
-      EngineMode: 'provisioned'
-      EngineVersion: !Ref EngineVersionParam
-      
-      #GlobalClusterIdentifier: String
+      # DB Cluster
       DBClusterIdentifier: !Ref DBClusterIdentifierParam
+      #GlobalClusterIdentifier: String
+      Engine: !Ref EngineParam
+      EngineVersion: !Ref EngineVersionParam
+      EngineMode: 'provisioned'      
 
       DatabaseName: !Ref DatabaseNameParam
       MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
-
       DBClusterParameterGroupName: !Ref DBParameterGroup
 
       #EnableIAMDatabaseAuthentication: String
+      #AssociatedRoles: 
+      #  - DBInstanceRole
+
+
+      # Snapshot & Read Replica
       RestoreType: !If [UsesRestore, !Ref RestoreTypeParam, !Ref AWS::NoValue]
       #SnapshotIdentifier: !If [UsesSnapshot, !Ref SnapshotIdentifierParam, !Ref AWS::NoValue]
       #SourceDBClusterIdentifier: !If [CreatesReadReplica, !Ref SourceDBClusterIdentifierParam, !Ref AWS::NoValue]
@@ -304,6 +796,8 @@ Resources:
 
       # Network
       DBSubnetGroupName: !Ref SubnetGroupNameParam
+      AvailabilityZones: 
+        - String      
       VpcSecurityGroupIds: !Ref SecurityGroupListParam
     
      
@@ -313,16 +807,16 @@ Resources:
       CopyTagsToSnapshot: false
 
 
-      # Log & Monitoring
+      # Log & Monitoring & 
       EnableCloudwatchLogsExports: !FindInMap [DBEngineMap, !Ref EngineParam, Log]
+
+
 
 
       # Option
       DeletionProtection: true
 
       #PreferredMaintenanceWindow: String      
-      #AssociatedRoles: 
-      #  - DBInstanceRole
       # EnableHttpEndpoint: Boolean
       #BacktrackWindow: 0
 

@@ -7,6 +7,7 @@ Description: >-
   ## Resources
   * Subnet Group
   * Cluster Parameter Group
+  * Parameter Group
 
 
 Metadata:
@@ -19,14 +20,19 @@ Metadata:
           - SubnetGroupNameParam
           - SubnetGroupSubnetIdsParam
 
-
       - 
         Label:
           default: "Cluster Parameter Group Configuration"
         Parameters:
+          - ClusterParameterGroupNameParam
+          - ClusterParameterGroupFamilyParam
+
+      - 
+        Label:
+          default: "Parameter Group Configuration"
+        Parameters:
           - ParameterGroupNameParam
           - ParameterGroupFamilyParam
-
 
 
 #Mappings
@@ -41,8 +47,24 @@ Parameters:
     Description: "Subnet ID List"
     Type: List<AWS::EC2::Subnet::Id>
 
-  ParameterGroupNameParam:
+  ClusterParameterGroupNameParam:
     Description: 'Cluster Parameter Group Name'
+    Type: String
+    Default: 'pg-cluster-y2-test'
+  ClusterParameterGroupFamilyParam:
+    Description: 'Cluster Parameter Group Family'
+    Type: String
+    AllowedValues:
+      - aurora-mysql5.7
+      - aurora-mysql8.0
+      - aurora-postgresql10
+      - aurora-postgresql11
+      - aurora-postgresql12
+      - aurora-postgresql13
+
+
+  ParameterGroupNameParam:
+    Description: 'Parameter Group Name'
     Type: String
     Default: 'pg-y2-test'
   ParameterGroupFamilyParam:
@@ -55,6 +77,7 @@ Parameters:
       - aurora-postgresql11
       - aurora-postgresql12
       - aurora-postgresql13
+
 
 #Rules:
 
@@ -78,15 +101,30 @@ Resources:
   DBClusterParameterGroup:
     Type: AWS::RDS::DBClusterParameterGroup
     Properties: 
-      Description: !Sub 'Cluster Parameter Group for ${ParameterGroupNameParam}'
-      Family: !Ref ParameterGroupFamilyParam
+      Description: !Sub 'Cluster Parameter Group for ${ClusterParameterGroupNameParam}'
+      Family: !Ref ClusterParameterGroupFamilyParam
       Parameters: 
-        aurora_lab_mode: 0
+        character_set_database: utf32
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref ClusterParameterGroupNameParam
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: !Sub 'Parameter Group for ${ParameterGroupNameParam}'
+      Family: !Ref ParameterGroupFamilyParam
+      #Parameters: 
+      #  Key : Value
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Ref ParameterGroupNameParam
+
+
 
 Outputs:
   DBSubnetGroupId:
@@ -95,9 +133,15 @@ Outputs:
     Export:
       Name: !Sub "${AWS::StackName}-SubnetGroupId"
 
-  DBParameterGroupId:
+  DBClusterParameterGroupId:
     Description: 'Cluster Parameter Group ID'
     Value: !Ref DBClusterParameterGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterParameterGroupId"
+
+  DBParameterGroupId:
+    Description: 'Parameter Group ID'
+    Value: !Ref DBParameterGroup
     Export:
       Name: !Sub "${AWS::StackName}-ParameterGroupId"
 ...

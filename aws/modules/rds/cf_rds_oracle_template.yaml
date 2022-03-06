@@ -474,11 +474,9 @@ Resources:
 
 
 Outputs:
-  InstanceId:
+  RDSId:
     Description: RDS ID
     Value: !Ref RDSInstance
     Export:
       Name: !Sub "${AWS::StackName}-RdsId"
 ...
-
-

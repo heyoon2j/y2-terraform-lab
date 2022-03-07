@@ -259,11 +259,9 @@ Parameters:
 
 
 Conditions:
-  IncreasesStroage: !Not [!Equals [!Ref MaxAllocatedStorageParam, 0]]
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
-  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
 
 
 Resources:
@@ -273,7 +271,6 @@ Resources:
       # DB Cluster
       DBClusterIdentifier: !Ref DBClusterIdentifierParam
       #GlobalClusterIdentifier: !Ref GlobalClusterIdentifierParam # Not use other region
-      DBInstanceClass: !Ref DBInstanceClassParam      
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
       EngineMode: 'provisioned'
@@ -335,9 +332,7 @@ Resources:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
-          Value: !Ref DBClusterIdentifier
-
-
+          Value: !Ref DBClusterIdentifierParam
 
 
 

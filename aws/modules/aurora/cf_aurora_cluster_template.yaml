@@ -289,15 +289,20 @@ Resources:
       # Snapshot & Replica & Restore
       #SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
       #ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
-            
+      
       #SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
       #SourceRegion: !Ref SourceRegionParam
 
       #RestoreType: !Ref RestoreTypeParam
       
+
       #UseLatestRestorableTime: Boolean
-      #ScalingConfiguration: 
-      # ScalingConfiguration
+      #ScalingConfiguration: #Serverless
+      #  AutoPause: Boolean
+      #  MaxCapacity: Integer
+      #  MinCapacity: Integer
+      #  SecondsUntilAutoPause: Integer
+
 
 
       # Storage

@@ -1,11 +1,10 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  # RDS Basic Template
-  * For AWS CloudFormation - RDS Basic Template
+  # Aurora Instance Template
+  * For AWS CloudFormation - Auroara Instance Template
 
   ## DB Engine
-  * MariaDB
   * MySQL
   * Postgres
 
@@ -15,13 +14,17 @@ Metadata:
     ParameterGroups:
       - 
         Label:
+          default: "Aurora Cluster Configuration"
+        Parameters:
+          - DBClusterIdentifierParam
+
+
+      - 
+        Label:
           default: "RDS Configuration"
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
-          - EngineParam
-          - EngineVersionParam
-        #  - LicenseModelParam
 
       #- 
       #  Label:
@@ -31,28 +34,21 @@ Metadata:
       #    - SourceDBInstanceIdentifierParam
       #    - SourceRegionParam
 
-      - 
-        Label:
-          default: "Storage Configuration"
-        Parameters:
-          - StorageTypeParam
-          - StorageSizeParam
-          #- IopsParam
-          - MaxAllocatedStorageParam
-          - KmsKeyParam
+      #- 
+      #  Label:
+      #    default: "Storage Configuration"
+      #  Parameters:
+      #    - KmsKeyParam
 
       - 
         Label:
           default: "Database Configuration"
         Parameters:
-          - DatabaseNameParam
-          - MasterUsernameParam
+          #- DatabaseNameParam
+          #- MasterUsernameParam
           - MasterUserPasswordParam
           - PortParam
           - ParameterGroupNameParam
-          - OptionGroupNameParam
-        #  - TimezoneParam
-        #  - CharacterSetNameParam
           - CACertificateIdentifierParam
 
       - 
@@ -64,11 +60,13 @@ Metadata:
           - AzParam
           - SecurityGroupListParam
 
-      - 
-        Label:
-          default: "Availability Configuration"
-        Parameters:
-          - MultiAzParam
+
+      #-
+      #  Label:
+      #    default: "Availability Configuration"
+      #  Parameters:
+      #    - MultiAzParam
+
 
       - 
         Label:
@@ -93,66 +91,15 @@ Metadata:
 
 Mappings:
   DBEngineMap:
-    mariadb:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
-    mysql:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
-    oracle-ee:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-ee-cdb:
-      Log: 
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-se2:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-cdb:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    postgres:
-      Log:
-        - postgresql
-        - upgrade
-    sqlserver-ee:
-      Log:
-        - agent
-        - error
-    sqlserver-se:
-      Log:
-        - agent
-        - error
-    sqlserver-ex:
-      Log:
-        - agent
-        - error
-    sqlserver-web:
-      Log:
-        - agent
-        - error
+
 
 
 
 Parameters:
+  DBClusterIdentifierParam:
+    Description: 'Aurora Cluster Name'
+    Type: String
+    Default: 'rds-y2-test-cluster'
   DBIdentifierNameParam:
     Description: 'RDS Identifier Name'
     Type: String
@@ -196,10 +143,7 @@ Parameters:
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
-#  LicenseModelParam:
-#    Description: 'Licent Model'
-#    Type: String
-#    AllowedValues:
+
 
 
 #  DBSnapshotIdentifierParam:
@@ -220,10 +164,10 @@ Parameters:
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
 
-  DatabaseNameParam:
-    Description: 'Database Name'
-    Type: String
-    Default: 'database12'
+#  DatabaseNameParam:
+#    Description: 'Database Name'
+#    Type: String
+#    Default: 'database12'
   MasterUsernameParam:
     Description: 'Master Username'
     Type: String
@@ -240,25 +184,11 @@ Parameters:
     Description: 'Parameter Group Name'
     Type: String
     Default: 'null'
-  OptionGroupNameParam:
-    Description: 'Option Group Name / If engine is postgres, set null'
-    Type: String
-    Default: 'null'
   CACertificateIdentifierParam:
     Description: 'CA Certification / null == rds-ca-2019'
     Type: String
     Default: 'null'
     #AllowedValues: 
-#  TimezoneParam:
-#    Description: ''
-#    Type: String
-#    Default: 
-#    AllowedValues:
-#  CharacterSetNameParam:
-#    Description: ''
-#    Type: String
-#    Default: 
-#    AllowedValues:   
 
 
   # Network
@@ -283,33 +213,10 @@ Parameters:
 
 
   # Storage
-  StorageTypeParam:
-    Description: 'Storage Type: Only gp2 type'
-    Type: String
-    Default: 'gp2'
-    AllowedValues:
-      - gp2
-  StorageSizeParam:
-    Description: 'Storage Size: 20 ~ 65536 (GiB) '
-    Type: Number
-    Default: 20
-    MinValue: 20
-    MaxValue: 65536
-#  IopsParam:
-#    Description: 'IOPS'
-#    Type: Number
-#    Default: 3000
-#    MinValue: 1000
-#    MaxValue: 80000
-  MaxAllocatedStorageParam:
-    Description: 'Does DB server increase storage (MinValue: 101GiB / MaxValue: 65536GiB)'
-    Type: Number
-    Default: 0
-    MaxValue: 65536
-  KmsKeyParam:
-    Description: "KMS Key ID  / null == No encryption"
-    Type: String
-    Default: "null"
+  #KmsKeyParam:
+  #  Description: "KMS Key ID  / null == No encryption"
+  #  Type: String
+  #  Default: "null"
 
 
   # Availability
@@ -369,15 +276,13 @@ Parameters:
 
 
 Conditions:
-  IncreasesStroage: !Not [!Equals [!Ref MaxAllocatedStorageParam, 0]]
-  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+  #IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   IsMultiAz: !Equals [!Ref MultiAzParam, true]
   SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
   SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
   IsPostgres: !Equals [!Ref EngineParam, 'postgres']
-  SupportsOptionGroup: !Not [!Equals [!Ref EngineParam, 'postgres']]
 
 
 Resources:
@@ -385,18 +290,18 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       # DB Instance
-      DBInstanceIdentifier: !Ref DBIdentifierNameParam
+      DBClusterIdentifier: !Ref DBClusterIdentifierParam
+      #DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam      
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
-      #LicenseModel: !Ref LicenseModelParam
+
 
       DBName: !Ref DatabaseNameParam
       MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
       DBParameterGroupName: !Ref ParameterGroupNameParam
-      OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
       #Timezone: !Ref TimezoneParam
       #CharacterSetName: !Ref CharacterSetNameParam
       CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
@@ -413,12 +318,8 @@ Resources:
 
 
       # Storage
-      StorageType: !Ref StorageTypeParam
-      AllocatedStorage: !Ref StorageSizeParam
-      MaxAllocatedStorage: !If [IncreasesStroage, !Ref MaxAllocatedStorageParam, !Ref AWS::NoValue]
-      #Iops: !If [IsAurora, !Ref AWS::NoValue, !Ref IopsParam] 
-      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
-      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+      #StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      #KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network

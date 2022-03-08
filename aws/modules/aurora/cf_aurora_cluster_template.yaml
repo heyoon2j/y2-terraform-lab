@@ -86,69 +86,29 @@ Metadata:
 
 Mappings:
   DBEngineMap:
-    mariadb:
+    aurora:
       Log:
         - audit
         - error
         - general
         - slowquery
-    mysql:
+    aurora-mysql:
       Log:
         - audit
         - error
         - general
         - slowquery
-    oracle-ee:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-ee-cdb:
-      Log: 
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-se2:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-cdb:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    postgres:
+    aurora-postgresql:
       Log:
         - postgresql
-        - upgrade
-    sqlserver-ee:
-      Log:
-        - agent
-        - error
-    sqlserver-se:
-      Log:
-        - agent
-        - error
-    sqlserver-ex:
-      Log:
-        - agent
-        - error
-    sqlserver-web:
-      Log:
-        - agent
-        - error
+
 
 
 Parameters:
   DBClusterIdentifierParam:
     Description: 'Aurora Cluster Name'
     Type: String
-    Default: 'rds-y2-test'
+    Default: 'rds-y2-test-cluster'
 #  GlobalClusterIdentifierParam:
 #    Description: 'Aurora Global Cluster Name'
 #    Type: String
@@ -163,6 +123,7 @@ Parameters:
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
+    Default: '5.7.mysql_aurora.2.10.0'
 
 
 
@@ -211,7 +172,7 @@ Parameters:
   SubnetGroupNameParam:
     Description: 'Subnet Group Name'
     Type: String
-    Default: 'sg-y2-test'
+    Default: 'sg-cluster-y2-test'
   AzsParam:
     Description: 'Availability Zones'
     Type: List<AWS::EC2::AvailabilityZone::Name>
@@ -230,15 +191,15 @@ Parameters:
             
   # Backup
   BackupRetentionPeriodParam:
-    Description: 'Backup Retention Period: 0 ~ 35 (Day) / 0 == Not use backup'
+    Description: 'Backup Retention Period: 1 ~ 35 (Day)'
     Type: Number
-    Default: 0
-    MinValue: 0
+    Default: 1
+    MinValue: 1
     MaxValue: 35
   PreferredBackupWindowParam:
-    Description: 'Backup Window(UTC): hh24:mi-hh24:mi (ex> 00:30-01:30) / Input value, when BackupRetentionPeriodParam is not 0'
+    Description: 'Backup Window(UTC): hh24:mi-hh24:mi (ex> 00:30-01:30)'
     Type: String
-    Default: 'null'
+    Default: '17:00-17:30'
 
 
   # Log & Maintenance Configuration
@@ -252,7 +213,7 @@ Parameters:
   PreferredMaintenanceWindowParam:
     Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
     Type: String
-    Default: 'sun:01:00-sun:01:30'
+    Default: 'sat:16:00-sat:16:30'
 
 
 #Rules:
@@ -260,7 +221,6 @@ Parameters:
 
 Conditions:
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
-  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
 
 
@@ -318,8 +278,8 @@ Resources:
   
       # Backup
       BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
-      PreferredBackupWindow: !If [SupportsBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
-      CopyTagsToSnapshot: !If [SupportsBackup, true, !Ref AWS::NoValue]
+      PreferredBackupWindow: !Ref PreferredBackupWindowParam
+      CopyTagsToSnapshot: true
 
 
       # Log & Maintenance

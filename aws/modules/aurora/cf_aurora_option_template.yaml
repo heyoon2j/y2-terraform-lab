@@ -42,7 +42,7 @@ Parameters:
   SubnetGroupNameParam:
     Description: 'Subnet Group Name'
     Type: String
-    Default: 'sg-y2-test'
+    Default: 'sg-cluster-y2-test'
   SubnetGroupSubnetIdsParam:
     Description: "Subnet ID List"
     Type: List<AWS::EC2::Subnet::Id>

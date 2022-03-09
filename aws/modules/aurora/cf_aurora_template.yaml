@@ -16,8 +16,8 @@ Metadata:
         Label:
           default: "Aurora Cluster Configuration"
         Parameters:
+          - AuroraStackNameParam
           - DBClusterIdentifierParam
-
 
       - 
         Label:
@@ -25,6 +25,7 @@ Metadata:
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
+          - PromotionTierParam
 
       #- 
       #  Label:
@@ -34,31 +35,38 @@ Metadata:
       #    - SourceDBInstanceIdentifierParam
       #    - SourceRegionParam
 
-      #- 
-      #  Label:
-      #    default: "Storage Configuration"
-      #  Parameters:
-      #    - KmsKeyParam
+#aurora      - 
+#aurora       Label:
+#aurora         default: "Storage Configuration"
+#aurora        Parameters:
+#aurora          - StorageTypeParam
+#aurora          - StorageSizeParam
+          #- IopsParam
+#aurora          - MaxAllocatedStorageParam
+#aurora          - KmsKeyParam
 
       - 
         Label:
           default: "Database Configuration"
         Parameters:
-          #- DatabaseNameParam
-          #- MasterUsernameParam
-          - MasterUserPasswordParam
-          - PortParam
+          - EngineParam
+#aurora          - EngineVersionParam
+          #- LicenseModelParam        
+#aurora          - DatabaseNameParam
+#aurora          - MasterUsernameParam
+#aurora          - MasterUserPasswordParam
+#aurora          - PortParam
           - ParameterGroupNameParam
           - CACertificateIdentifierParam
 
-      - 
-        Label:
-          default: "Network Configuration"
-        Parameters:
+#aurora      - 
+#        Label:
+#          default: "Network Configuration"
+#        Parameters:
           - PubliclyAccessibleParam
-          - SubnetGroupNameParam
+#aurora          - SubnetGroupNameParam
           - AzParam
-          - SecurityGroupListParam
+#aurora          - SecurityGroupListParam
 
 
       #-
@@ -68,18 +76,18 @@ Metadata:
       #    - MultiAzParam
 
 
-      - 
-        Label:
-          default: "Backup Configuration"
-        Parameters:
-          - BackupRetentionPeriodParam
-          - PreferredBackupWindowParam
+#aurora      - 
+#        Label:
+#          default: "Backup Configuration"
+#        Parameters:
+#aurora          - BackupRetentionPeriodParam
+#aurora          - PreferredBackupWindowParam
 
       - 
         Label:
           default: "Log & Monitoring & Maintenance Configuration"
         Parameters:
-          - EnableCloudwatchLogsExportParam
+#aurora          - EnableCloudwatchLogsExportParam
           - MonitoringIntervalParam
           - MonitoringRoleArnParam
           - PreferredMaintenanceWindowParam
@@ -91,24 +99,44 @@ Metadata:
 
 Mappings:
   DBEngineMap:
+    aurora:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+    aurora-mysql:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+    aurora-postgresql:
+      Log:
+        - postgresql
 
 
 
 
 Parameters:
+  AuroraStackNameParam:
+    Description: 'Aurora Cluster Stack'
+    Type: String
+    Default: 'null'
   DBClusterIdentifierParam:
     Description: 'Aurora Cluster Name'
     Type: String
-    Default: 'rds-y2-test-cluster'
+    Default: 'null'
   DBIdentifierNameParam:
-    Description: 'RDS Identifier Name'
+    Description: 'RDS Identifier Name / If input abc, DB ID is <AuroraClusterName + - + abc>'
     Type: String
-    Default: 'rds-y2-test'
+    Default: 'null'
   DBInstanceClassParam:
     Description: 'DB Instance Class'
     Type: String
-    Default: db.m5.large
-    AllowedValues: 
+    Default: db.r3.large
+    AllowedValues:
+      - db.r3.large
       - db.m5.large
       - db.m5.xlarge
       - db.m5.2xlarge
@@ -125,25 +153,12 @@ Parameters:
       - db.r5.8xlarge
       - db.r5.12xlarge
       - db.r5.16xlarge
-  EngineParam:
-    Description: 'DB Engine Name'
-    Type: String
-    AllowedValues:
-      - mariadb
-      - mysql
-      - oracle-ee
-      - oracle-ee-cdb  
-      - oracle-se2
-      - oracle-cdb
-      - postgres
-      - sqlserver-ee
-      - sqlserver-se
-      - sqlserver-ex
-      - sqlserver-web
-  EngineVersionParam:
-    Description: 'DB Engine Version'
-    Type: String
-
+  PromotionTierParam:
+    Description: 'Promotion Tier : 0 ~ 15 (Default: 1)/ for failover'
+    Type: Number
+    Default: 1
+    MinValue: 0
+    MaxValue: 15
 
 
 #  DBSnapshotIdentifierParam:
@@ -164,22 +179,33 @@ Parameters:
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
 
-#  DatabaseNameParam:
+
+  EngineParam:
+    Description: 'DB Engine Name'
+    Type: String
+    AllowedValues:
+      - aurora
+      - aurora-mysql
+      - aurora-postgresql
+#aurora  EngineVersionParam:
+#    Description: 'DB Engine Version'
+#    Type: String
+#aurora  DatabaseNameParam:
 #    Description: 'Database Name'
 #    Type: String
 #    Default: 'database12'
-  MasterUsernameParam:
-    Description: 'Master Username'
-    Type: String
-    Default: 'test12'
-  MasterUserPasswordParam:
-    Description: 'Master User Password'
-    Type: String
-    Default: 'testtest12!'
-  PortParam:
-    Description: 'Database Port Number'
-    Type: String
-    Default: '5432'
+#aurora  MasterUsernameParam:
+#    Description: 'Master Username'
+#    Type: String
+#    Default: 'test12'
+#aurora  MasterUserPasswordParam:
+#    Description: 'Master User Password'
+#    Type: String
+#    Default: 'testtest12!'
+#aurora  PortParam:
+#    Description: 'Database Port Number'
+#    Type: String
+#    Default: '5432'
   ParameterGroupNameParam:
     Description: 'Parameter Group Name'
     Type: String
@@ -199,57 +225,57 @@ Parameters:
     AllowedValues:
       - true
       - false
-  SubnetGroupNameParam:
-    Description: 'Subnet Group Name'
-    Type: String
-    Default: 'sg-y2-test'
+#aurora  SubnetGroupNameParam:
+#    Description: 'Subnet Group Name'
+#    Type: String
+#    Default: 'sg-y2-test'
   AzParam:
     Description: 'Availability Zone / If you check Multi AZ true, this changes to AWS::NoValue'
     Type: AWS::EC2::AvailabilityZone::Name
     Default: 'null'
-  SecurityGroupListParam:
-    Description: 'Security Group List'
-    Type: List<AWS::EC2::SecurityGroup::Id>
+#aurora  SecurityGroupListParam:
+#    Description: 'Security Group List'
+#    Type: List<AWS::EC2::SecurityGroup::Id>
 
 
   # Storage
-  #KmsKeyParam:
-  #  Description: "KMS Key ID  / null == No encryption"
-  #  Type: String
-  #  Default: "null"
+#aurora  KmsKeyParam:
+#  Description: "KMS Key ID  / null == No encryption"
+#    Type: String
+#    Default: "null"
 
 
   # Availability
-  MultiAzParam:
-    Description: 'Does RDS create multi az? (ex> true,false)'
-    Type: String
-    Default: false
-    AllowedValues:
-      - true
-      - false
+#aurora  MultiAzParam:
+#    Description: 'Does RDS create multi az? (ex> true,false)'
+#    Type: String
+#    Default: false
+#    AllowedValues:
+#      - true
+#      - false
 
             
   # Backup
-  BackupRetentionPeriodParam:
-    Description: 'Backup Retention Period: 0 ~ 35 (Day) / 0 == Not use backup'
-    Type: Number
-    Default: 0
-    MinValue: 0
-    MaxValue: 35
-  PreferredBackupWindowParam:
-    Description: 'Backup Window(UTC): hh24:mi-hh24:mi (ex> 00:30-01:30) / Input value, when BackupRetentionPeriodParam is not 0'
-    Type: String
-    Default: 'null'
+#aurora  BackupRetentionPeriodParam:
+#    Description: 'Backup Retention Period: 0 ~ 35 (Day) / 0 == Not use backup'
+#    Type: Number
+#    Default: 0
+#    MinValue: 0
+#    MaxValue: 35
+#aurora  PreferredBackupWindowParam:
+#    Description: 'Backup Window(UTC): hh24:mi-hh24:mi (ex> 00:30-01:30) / Input value, when BackupRetentionPeriodParam is not 0'
+#    Type: String
+#    Default: 'null'
 
 
   # Log & Monitoring & Maintenance Configuration
-  EnableCloudwatchLogsExportParam:
-    Description: 'Does db use CloudWatch Logs? (ex> true/false)'
-    Type: String
-    Default: false
-    AllowedValues:
-      - true
-      - false
+#aurora  EnableCloudwatchLogsExportParam:
+#    Description: 'Does db use CloudWatch Logs? (ex> true/false)'
+#    Type: String
+#    Default: false
+#    AllowedValues:
+#      - true
+#      - false
   MonitoringIntervalParam:
     Description: 'Monitoring Interval: 0, 1, 5, 10, 15, 30, 60 (Second) / 0 == Not use monitoring'
     Type: Number
@@ -269,20 +295,20 @@ Parameters:
   PreferredMaintenanceWindowParam:
     Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
     Type: String
-    Default: 'sun:01:00-sun:01:30'
+    Default: 'sat:16:00-sat:16:30'
 
 
 #Rules:
 
 
 Conditions:
-  #IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
-  IsMultiAz: !Equals [!Ref MultiAzParam, true]
+#aurora  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+#aurora  IsMultiAz: !Equals [!Ref MultiAzParam, true]
   SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
-  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
+#aurora  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
-  UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
-  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
+#aurora  UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
+#aurora  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
 
 
 Resources:
@@ -290,23 +316,32 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       # DB Instance
-      DBClusterIdentifier: !Ref DBClusterIdentifierParam
-      #DBInstanceIdentifier: !Ref DBIdentifierNameParam
-      DBInstanceClass: !Ref DBInstanceClassParam      
-      Engine: !Ref EngineParam
-      EngineVersion: !Ref EngineVersionParam
+      #DBClusterIdentifier: !Ref DBClusterIdentifierParam
+      DBClusterIdentifier: !ImportValue
+        Fn::Sub: "${AuroraStackNameParam}-AuroraClusterId"
+      DBInstanceIdentifier: !Join
+        - '-'
+        - - !ImportValue
+              Fn::Sub: "${AuroraStackNameParam}-AuroraClusterId"
+          -  !Ref DBIdentifierNameParam
+      DBInstanceClass: !Ref DBInstanceClassParam
+      PromotionTier: !Ref PromotionTierParam
 
-
-      DBName: !Ref DatabaseNameParam
-      MasterUsername: !Ref MasterUsernameParam
-      MasterUserPassword: !Ref MasterUserPasswordParam
-      Port: !Ref PortParam
+      # Database      
+      #Engine: !Ref EngineParam
+      Engine: !ImportValue
+        Fn::Sub: "${AuroraStackNameParam}-AuroraDBEngine"
+#aurora      EngineVersion: !Ref EngineVersionParam
+#aurora      DBName: !Ref DatabaseNameParam
+#aurora      MasterUsername: !Ref MasterUsernameParam
+#aurora      MasterUserPassword: !Ref MasterUserPasswordParam
+#aurora      Port: !Ref PortParam
       DBParameterGroupName: !Ref ParameterGroupNameParam
       #Timezone: !Ref TimezoneParam
       #CharacterSetName: !Ref CharacterSetNameParam
       CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
 
-      #EnableIAMDatabaseAuthentication: String
+#aurora      #EnableIAMDatabaseAuthentication: String
       #AssociatedRoles: 
       #  - DBInstanceRole
  
@@ -324,24 +359,25 @@ Resources:
 
       # Network
       PubliclyAccessible: !Ref PubliclyAccessibleParam
-      DBSubnetGroupName: !Ref SubnetGroupNameParam
-      AvailabilityZone: !If [IsMultiAz, !Ref AWS::NoValue, !Ref AzParam]
-      VPCSecurityGroups: !Ref SecurityGroupListParam
+#aurora      DBSubnetGroupName: !Ref SubnetGroupNameParam
+#aurora      AvailabilityZone: !If [IsMultiAz, !Ref AWS::NoValue, !Ref AzParam]
+      AvailabilityZone: !Ref AzParam
+#aurora      VPCSecurityGroups: !Ref SecurityGroupListParam
 
 
       # Availability
-      MultiAZ: !If [IsMultiAz, true, false]
+#aurora      MultiAZ: !If [IsMultiAz, true, false]
       
      
       # Backup
       DeleteAutomatedBackups: true
-      BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
-      PreferredBackupWindow: !If [SupportsBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
-      CopyTagsToSnapshot: !If [SupportsBackup, true, !Ref AWS::NoValue]
+#aurora      BackupRetentionPeriod: !Ref BackupRetentionPeriodParam
+#aurora      PreferredBackupWindow: !If [SupportsBackup, !Ref PreferredBackupWindowParam, !Ref AWS::NoValue]
+#aurora      CopyTagsToSnapshot: !If [SupportsBackup, true, !Ref AWS::NoValue]
 
 
       # Log & Monitoring & Maintenance
-      EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
+#aurora      EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
       MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
       MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
@@ -351,8 +387,8 @@ Resources:
 
 
       # Option
-      DeletionProtection: true
-      AllowMajorVersionUpgrade: true
+#aurora      DeletionProtection: true
+#aurora      AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
 
       #Domain: String

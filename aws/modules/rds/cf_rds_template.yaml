@@ -9,6 +9,12 @@ Description: >-
   * MySQL
   * Postgres
 
+  ## How to create
+  * Basic => RDS Instance
+  * Multi => Standby
+  * Snapshot => Restore
+  * SourceDB => Read Replica
+
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -19,9 +25,6 @@ Metadata:
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
-          - EngineParam
-          - EngineVersionParam
-        #  - LicenseModelParam
 
       #- 
       #  Label:
@@ -45,6 +48,9 @@ Metadata:
         Label:
           default: "Database Configuration"
         Parameters:
+          - EngineParam
+          - EngineVersionParam
+        #  - LicenseModelParam        
           - DatabaseNameParam
           - MasterUsernameParam
           - MasterUserPasswordParam

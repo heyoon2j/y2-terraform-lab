@@ -19,9 +19,7 @@ Metadata:
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
-          - EngineParam
-          - EngineVersionParam
-        #  - LicenseModel
+
 
       - 
         Label:
@@ -39,12 +37,15 @@ Metadata:
           - StorageSizeParam
           #- IopsParam
           - MaxAllocatedStorageParam
-#          - KmsKeyParam
+#snapshot          - KmsKeyParam
 
       - 
         Label:
           default: "Database Configuration"
         Parameters:
+          - EngineParam
+          - EngineVersionParam
+        #  - LicenseModel
 #snapshot          - DatabaseNameParam
 #snapshot          - MasterUsernameParam
 #snapshot          - MasterUserPasswordParam

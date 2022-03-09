@@ -19,9 +19,7 @@ Metadata:
         Parameters:
           - DBIdentifierNameParam
           - DBInstanceClassParam
-          - EngineParam
-          - EngineVersionParam
-          - LicenseModelParam
+
 
       - 
         Label:
@@ -45,6 +43,9 @@ Metadata:
         Label:
           default: "Database Configuration"
         Parameters:
+          - EngineParam
+          - EngineVersionParam
+          - LicenseModelParam        
 #snapshot          - DatabaseNameParam
 #snapshot          - MasterUsernameParam
 #snapshot          - MasterUserPasswordParam

@@ -18,7 +18,15 @@ Description: >-
   4. 
 
 
-  ## Parameter
+  ## Not Use Parameter for using snapshot
+  * GlobalClusterIdentifier
+  * MasterUsername
+  * ReplicationSourceIdentifier
+  * RestoreType
+  * SourceDBClusterIdentifier
+  * SourceRegion
+  * StorageEncrypted
+  * UseLatestRestorableTime
 
 
   ## Create Aurora
@@ -26,17 +34,6 @@ Description: >-
   * Snapshot => Restore
   * SourceDB & ResotreType => Clone
   * ReplicationSourceIdentifier => Cross-Region Read Replica
-
-#SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
-
-#ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
-      
-#SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
-#SourceRegion: !Ref SourceRegionParam
-#RestoreType: !Ref RestoreTypeParam
-
-#UseLatestRestorableTime: Boolean
-
 
 
 Metadata:
@@ -49,19 +46,20 @@ Metadata:
           - DBClusterIdentifierParam
         #  - GlobalClusterIdentifierParam
 
-      #- 
-      #  Label:
-      #    default: "Snapshot & Replica & Restore Configuration"
-      #  Parameters:          
-      #    - DBSnapshotIdentifierParam
-      #    - SourceDBClusterIdentifierParam
-      #    - SourceRegionParam
-
       - 
         Label:
-          default: "Storage Configuration"
-        Parameters:
-          - KmsKeyParam
+          default: "Snapshot & Replica & Restore Configuration"
+        Parameters:          
+          - DBSnapshotIdentifierParam
+        #  - SourceDBClusterIdentifierParam
+        #  - SourceRegionParam
+        #  - RestoreType
+
+#snapshot      - 
+#        Label:
+#          default: "Storage Configuration"
+#        Parameters:
+#          - KmsKeyParam
 
       - 
         Label:
@@ -69,9 +67,9 @@ Metadata:
         Parameters:
           - EngineParam
           - EngineVersionParam
-          - DatabaseNameParam
-          - MasterUsernameParam
-          - MasterUserPasswordParam
+#snapshot          - DatabaseNameParam
+#snapshot          - MasterUsernameParam
+#snapshot          - MasterUserPasswordParam
           - PortParam
           - ClusterParameterGroupNameParam
 
@@ -146,10 +144,10 @@ Parameters:
     #  - 
 
 
-#  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ARN. Create db using Snapshot'
-#    Type: String
-#    Default: 'null'
+  DBSnapshotIdentifierParam:
+    Description: 'Snapshot ARN. Create db using Snapshot'
+    Type: String
+    Default: 'null'
 #  SourceDBClusterIdentifierParam:
 #    Description: 'Source DB Cluster ID, Create Replica'
 #    Type: String
@@ -164,18 +162,18 @@ Parameters:
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
 
-  DatabaseNameParam:
-    Description: 'Database Name'
-    Type: String
-    Default: 'database12'   
-  MasterUsernameParam:
-    Description: 'Master Username'
-    Type: String
-    Default: 'test12'
-  MasterUserPasswordParam:
-    Description: 'Master User Password'
-    Type: String
-    Default: 'testtest12!'
+#snapshot  DatabaseNameParam:
+#    Description: 'Database Name'
+#    Type: String
+#    Default: 'database12'   
+#snapshot  MasterUsernameParam:
+#    Description: 'Master Username'
+#    Type: String
+#    Default: 'test12'
+#snapshot  MasterUserPasswordParam:
+#    Description: 'Master User Password'
+#    Type: String
+#    Default: 'testtest12!'
   PortParam:
     Description: 'Database Port Number'
     Type: String
@@ -202,10 +200,10 @@ Parameters:
 
 
   # Storage
-  KmsKeyParam:
-    Description: "KMS Key ID  / null == No encryption"
-    Type: String
-    Default: "null"
+#snapshot  KmsKeyParam:
+#    Description: "KMS Key ID  / null == No encryption"
+#    Type: String
+#    Default: "null"
 
             
   # Backup
@@ -239,7 +237,7 @@ Parameters:
 
 
 Conditions:
-  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+#snapshot  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
 
 
@@ -254,9 +252,9 @@ Resources:
       EngineVersion: !Ref EngineVersionParam
       EngineMode: 'provisioned'
 
-      DatabaseName: !Ref DatabaseNameParam
-      MasterUsername: !Ref MasterUsernameParam
-      MasterUserPassword: !Ref MasterUserPasswordParam
+#snapshot      DatabaseName: !Ref DatabaseNameParam
+#snapshot      MasterUsername: !Ref MasterUsernameParam
+#snapshot      MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
       DBClusterParameterGroupName: !Ref ClusterParameterGroupNameParam
 
@@ -266,12 +264,12 @@ Resources:
  
 
       # Snapshot & Replica & Restore
-      #SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+      SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+ 
       #ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
       
       #SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
       #SourceRegion: !Ref SourceRegionParam
-
       #RestoreType: !Ref RestoreTypeParam
       
 
@@ -285,8 +283,8 @@ Resources:
 
 
       # Storage
-      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
-      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+#snapshot      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+#snapshot      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network

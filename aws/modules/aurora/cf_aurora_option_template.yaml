@@ -104,7 +104,8 @@ Resources:
       Description: !Sub 'Cluster Parameter Group for ${ClusterParameterGroupNameParam}'
       Family: !Ref ClusterParameterGroupFamilyParam
       Parameters: 
-        character_set_database: utf32
+        #character_set_database: utf32
+        client_encoding: UTF8
       Tags: 
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'

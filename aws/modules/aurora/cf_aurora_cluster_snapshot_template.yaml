@@ -237,7 +237,7 @@ Parameters:
 
 
 Conditions:
-#snapshot  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
 
 
@@ -283,8 +283,8 @@ Resources:
 
 
       # Storage
-#snapshot      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
-#snapshot      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network

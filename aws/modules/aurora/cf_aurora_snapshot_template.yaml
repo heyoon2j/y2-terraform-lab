@@ -9,7 +9,6 @@ Description: >-
   * Postgres
 
 
-
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -35,15 +34,15 @@ Metadata:
       #    - SourceDBInstanceIdentifierParam
       #    - SourceRegionParam
 
-#aurora      - 
-#aurora       Label:
-#aurora         default: "Storage Configuration"
-#aurora        Parameters:
+      - 
+       Label:
+         default: "Storage Configuration"
+        Parameters:
 #aurora          - StorageTypeParam
 #aurora          - StorageSizeParam
           #- IopsParam
 #aurora          - MaxAllocatedStorageParam
-#aurora          - KmsKeyParam
+          - KmsKeyParam
 
       - 
         Label:
@@ -135,15 +134,8 @@ Parameters:
     Default: db.r3.large
     AllowedValues:
       - db.r3.large
-      - db.m5.large
-      - db.m5.xlarge
-      - db.m5.2xlarge
-      - db.m5.4xlarge
-      - db.m5.8xlarge
-      - db.m5.12xlarge
-      - db.m5.16xlarge
-      - db.t3.small
       - db.t3.medium
+      - db.t3.large
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -159,10 +151,10 @@ Parameters:
     MaxValue: 15
 
 
-#  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ARN. Create db using Snapshot'
-#    Type: String
-#    Default: 'null'
+  DBSnapshotIdentifierParam:
+    Description: 'Snapshot ARN. Create db using Snapshot'
+    Type: String
+    Default: 'null'
 #  SourceDBInstanceIdentifierParam:
 #    Description: 'Source DB ID, Create Read Replica'
 #    Type: String
@@ -316,7 +308,7 @@ Parameters:
 
 
 Conditions:
-#aurora  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
 #aurora  IsMultiAz: !Equals [!Ref MultiAzParam, true]
   SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
 #aurora  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
@@ -367,8 +359,8 @@ Resources:
 
 
       # Storage
-#snapshot      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
-#snapshot      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network

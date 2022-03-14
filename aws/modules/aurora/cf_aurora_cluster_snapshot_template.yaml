@@ -55,11 +55,11 @@ Metadata:
         #  - SourceRegionParam
         #  - RestoreType
 
-#snapshot      - 
-#        Label:
-#          default: "Storage Configuration"
-#        Parameters:
-#          - KmsKeyParam
+      - 
+        Label:
+          default: "Storage Configuration"
+        Parameters:
+          - KmsKeyParam
 
       - 
         Label:
@@ -200,10 +200,10 @@ Parameters:
 
 
   # Storage
-#snapshot  KmsKeyParam:
-#    Description: "KMS Key ID  / null == No encryption"
-#    Type: String
-#    Default: "null"
+  KmsKeyParam:
+    Description: "KMS Key ID  / null == No encryption"
+    Type: String
+    Default: "null"
 
             
   # Backup

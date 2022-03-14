@@ -1,13 +1,41 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  # Aurora Cluster & Instance Template
-  * For AWS CloudFomration - Aurora Cluster & Instance
+  # Aurora Cluster Template
+  * For AWS CloudFormation - Aurora Cluster Template
+
 
   ## DB Engine
   * MySQL
   * Postgres
 
+
+  ## Resources
+  1. 
+  2. DB Storage Type
+    * Only gp2
+  3. 
+  4. 
+
+
+  ## Parameter
+
+
+  ## Create Aurora
+  * Basic => Aurora Cluster & Write/Read Instance
+  * Snapshot => Restore
+  * SourceDB & ResotreType => Clone
+  * ReplicationSourceIdentifier => Cross-Region Read Replica
+
+#SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
+
+#ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
+      
+#SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
+#SourceRegion: !Ref SourceRegionParam
+#RestoreType: !Ref RestoreTypeParam
+
+#UseLatestRestorableTime: Boolean
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -17,6 +45,7 @@ Metadata:
           default: "Aurora Cluster Configuration"
         Parameters:
           - DBClusterIdentifierParam
+        #  - GlobalClusterIdentifierParam
 
       - 
         Label:
@@ -26,22 +55,18 @@ Metadata:
           - DBInstanceClassParam
           - PromotionTierParam
 
-      - 
-        Label:
-          default: "Snapshot & Read Replica Configuration"
-        Parameters:          
-          - DBSnapshotIdentifierParam
-      #    - SourceDBInstanceIdentifierParam
+      #- 
+      #  Label:
+      #    default: "Snapshot & Replica & Restore Configuration"
+      #  Parameters:          
+      #    - DBSnapshotIdentifierParam
+      #    - SourceDBClusterIdentifierParam
       #    - SourceRegionParam
 
       - 
-       Label:
-         default: "Storage Configuration"
-#aurora        Parameters:
-#aurora          - StorageTypeParam
-#aurora          - StorageSizeParam
-          #- IopsParam
-#aurora          - MaxAllocatedStorageParam
+        Label:
+          default: "Storage Configuration"
+        Parameters:
           - KmsKeyParam
 
       - 
@@ -50,10 +75,9 @@ Metadata:
         Parameters:
           - EngineParam
           - EngineVersionParam
-          #- LicenseModelParam        
-#aurora          - DatabaseNameParam
-#aurora          - MasterUsernameParam
-#aurora          - MasterUserPasswordParam
+          - DatabaseNameParam
+          - MasterUsernameParam
+          - MasterUserPasswordParam
           - PortParam
           - ClusterParameterGroupNameParam
           - ParameterGroupNameParam
@@ -63,19 +87,10 @@ Metadata:
         Label:
           default: "Network Configuration"
         Parameters:
-          - SubnetGroupNameParam
-          - SecurityGroupListParam
           - PubliclyAccessibleParam
+          - SubnetGroupNameParam
           - AzParam
-
-
-
-      #-
-      #  Label:
-      #    default: "Availability Configuration"
-      #  Parameters:
-      #    - MultiAzParam
-
+          - SecurityGroupListParam
 
       - 
         Label:
@@ -86,15 +101,16 @@ Metadata:
 
       - 
         Label:
-          default: "Log & Monitoring & Maintenance Configuration"
+          default: "Log & Maintenance Configuration"
         Parameters:
           - EnableCloudwatchLogsExportParam
+          - PreferredMaintenanceWindowParam
           - MonitoringIntervalParam
           - MonitoringRoleArnParam
-          - PreferredMaintenanceWindowParam
+
 
     #ParameterLabels:
-    #  DBIdentifierNameParam: 
+    #  DBClusterIdentifierParam: 
     #    default: "Which VPC should this be deployed to?"
 
 
@@ -118,12 +134,15 @@ Mappings:
 
 
 
-
 Parameters:
   DBClusterIdentifierParam:
     Description: 'Aurora Cluster Name'
     Type: String
     Default: 'rds-y2-test-cluster'
+#  GlobalClusterIdentifierParam:
+#    Description: 'Aurora Global Cluster Name'
+#    Type: String
+#    Default: 'null'
   DBIdentifierNameParam:
     Description: 'RDS Identifier Name / If input abc, DB ID is <AuroraClusterName + - + abc>'
     Type: String
@@ -131,7 +150,7 @@ Parameters:
   DBInstanceClassParam:
     Description: 'DB Instance Class'
     Type: String
-    Default: db.r5.large
+    Default: db.r3.large
     AllowedValues:
       - db.r3.large
       - db.t3.medium
@@ -142,7 +161,7 @@ Parameters:
       - db.r5.4xlarge
       - db.r5.8xlarge
       - db.r5.12xlarge
-      - db.r5.16xlarge
+      - db.r5.16xlarge   
   PromotionTierParam:
     Description: 'Promotion Tier : 0 ~ 15 (Default: 1)/ for failover'
     Type: Number
@@ -151,16 +170,16 @@ Parameters:
     MaxValue: 15
 
 
-  DBSnapshotIdentifierParam:
-    Description: 'Snapshot ARN. Create db using Snapshot'
-    Type: String
-    Default: 'null'
-#  SourceDBInstanceIdentifierParam:
-#    Description: 'Source DB ID, Create Read Replica'
+#  DBSnapshotIdentifierParam:
+#    Description: 'Snapshot ARN. Create db using Snapshot'
+#    Type: String
+#    Default: 'null'
+#  SourceDBClusterIdentifierParam:
+#    Description: 'Source DB Cluster ID, Create Replica'
 #    Type: String
 #    Default: 'null'
 #  SourceRegionParam:
-#    Description: 'Source DB Region, Create Read Replica'
+#    Description: 'Source DB Region, Create Replica'
 #    Type: String
 #    Default: 'null'
 #    AllowedValues:
@@ -168,7 +187,6 @@ Parameters:
 #      - 'us-west-1'
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
-
 
   EngineParam:
     Description: 'DB Engine Name'
@@ -184,25 +202,22 @@ Parameters:
     #AllowedValues:
     #  - 
 
-
-  DBSnapshotIdentifierParam:
-    Description: 'Snapshot ARN. Create db using Snapshot'
+  DatabaseNameParam:
+    Description: 'Database Name'
     Type: String
-    Default: 'null'
-
-
-#aurora  DatabaseNameParam:
-#    Description: 'Database Name'
-#    Type: String
-#    Default: 'database12'
-#aurora  MasterUsernameParam:
-#    Description: 'Master Username'
-#    Type: String
-#    Default: 'test12'
-#aurora  MasterUserPasswordParam:
-#    Description: 'Master User Password'
-#    Type: String
-#    Default: 'testtest12!'
+    Default: 'database12'   
+  MasterUsernameParam:
+    Description: 'Master Username'
+    Type: String
+    Default: 'test12'
+  MasterUserPasswordParam:
+    Description: 'Master User Password'
+    Type: String
+    Default: 'testtest12!'
+  PortParam:
+    Description: 'Database Port Number'
+    Type: String
+    Default: '5432'
   ClusterParameterGroupNameParam:
     Description: 'Cluster Parameter Group Name'
     Type: String
@@ -211,54 +226,39 @@ Parameters:
     Description: 'Parameter Group Name'
     Type: String
     Default: 'null'
-  PortParam:
-    Description: 'Database Port Number'
-    Type: String
-    Default: '5432'
   CACertificateIdentifierParam:
     Description: 'CA Certification / null == rds-ca-2019'
     Type: String
     Default: 'null'
-    #AllowedValues: 
+
 
 
   # Network
-  SubnetGroupNameParam:
-    Description: 'Subnet Group Name'
-    Type: String
-    Default: 'sg-cluster-y2-test'
-  SecurityGroupListParam:
-    Description: 'Security Group List'
-    Type: List<AWS::EC2::SecurityGroup::Id> 
   PubliclyAccessibleParam:
     Description: 'Can publicly access db? (ex> true,false)'
     Type: String
     Default: false
     AllowedValues:
       - true
-      - false   
+      - false  
+  SubnetGroupNameParam:
+    Description: 'Subnet Group Name'
+    Type: String
+    Default: 'sg-cluster-y2-test'
   AzParam:
-    Description: 'Availability Zone / If you check Multi AZ true, this changes to AWS::NoValue'
+    Description: 'Availability Zone'
     Type: AWS::EC2::AvailabilityZone::Name
     Default: 'null'
-
+  SecurityGroupListParam:
+    Description: 'Security Group List'
+    Type: List<AWS::EC2::SecurityGroup::Id>
 
 
   # Storage
-#aurora  KmsKeyParam:
-#  Description: "KMS Key ID  / null == No encryption"
-#    Type: String
-#    Default: "null"
-
-
-  # Availability
-#aurora  MultiAzParam:
-#    Description: 'Does RDS create multi az? (ex> true,false)'
-#    Type: String
-#    Default: false
-#    AllowedValues:
-#      - true
-#      - false
+  KmsKeyParam:
+    Description: "KMS Key ID  / null == No encryption"
+    Type: String
+    Default: "null"
 
             
   # Backup
@@ -274,7 +274,7 @@ Parameters:
     Default: '17:00-17:30'
 
 
-  # Log & Monitoring & Maintenance Configuration
+  # Log & Maintenance Configuration
   EnableCloudwatchLogsExportParam:
     Description: 'Does db use CloudWatch Logs? (ex> true/false)'
     Type: String
@@ -282,6 +282,10 @@ Parameters:
     AllowedValues:
       - true
       - false
+  PreferredMaintenanceWindowParam:
+    Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
+    Type: String
+    Default: 'sat:16:00-sat:16:30'
   MonitoringIntervalParam:
     Description: 'Monitoring Interval: 0, 1, 5, 10, 15, 30, 60 (Second) / 0 == Not use monitoring'
     Type: Number
@@ -298,23 +302,15 @@ Parameters:
     Description: 'Monitoring Role ARN / Input value, when MonitoringIntervalParam is not 0'
     Type: String
     Default: 'null'
-  PreferredMaintenanceWindowParam:
-    Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
-    Type: String
-    Default: 'sat:16:00-sat:16:30'
-
 
 #Rules:
 
 
 Conditions:
-#aurora  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
-#aurora  IsMultiAz: !Equals [!Ref MultiAzParam, true]
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
-#aurora  SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
-  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
-#aurora  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
+  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
 
 
 Resources:
@@ -328,9 +324,9 @@ Resources:
       EngineVersion: !Ref EngineVersionParam
       EngineMode: 'provisioned'
 
-#snapshot      DatabaseName: !Ref DatabaseNameParam
-#snapshot      MasterUsername: !Ref MasterUsernameParam
-#snapshot      MasterUserPassword: !Ref MasterUserPasswordParam
+      DatabaseName: !Ref DatabaseNameParam
+      MasterUsername: !Ref MasterUsernameParam
+      MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
       DBClusterParameterGroupName: !Ref ClusterParameterGroupNameParam
 
@@ -340,12 +336,12 @@ Resources:
  
 
       # Snapshot & Replica & Restore
-      SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
- 
+      #SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
       #ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
       
       #SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
       #SourceRegion: !Ref SourceRegionParam
+
       #RestoreType: !Ref RestoreTypeParam
       
 
@@ -359,8 +355,8 @@ Resources:
 
 
       # Storage
-#snapshot      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
-#snapshot      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
+      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
 
 
       # Network
@@ -393,20 +389,19 @@ Resources:
           Value: !Ref DBClusterIdentifierParam
 
 
+
   RDSInstance:
     Type: AWS::RDS::DBInstance
     Properties:
       # DB Instance
       #DBClusterIdentifier: !Ref DBClusterIdentifierParam
       DBClusterIdentifier: !Ref AuroraCluster
-      DBInstanceIdentifier: !Join
-        - '-'
-        - - !Ref AuroraCluster
-          - !Ref DBIdentifierNameParam
+      DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam
       PromotionTier: !Ref PromotionTierParam
 
-      # Database
+      # Database      
+      #Engine: !Ref EngineParam
       Engine: !Ref EngineParam
 #aurora      EngineVersion: !Ref EngineVersionParam
 #aurora      DBName: !Ref DatabaseNameParam
@@ -465,7 +460,7 @@ Resources:
 
       # Option
 #aurora      DeletionProtection: true
-#aurora      AllowMajorVersionUpgrade: true
+      AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
 
       #Domain: String
@@ -488,6 +483,12 @@ Outputs:
     Value: !Ref AuroraCluster
     Export:
       Name: !Sub "${AWS::StackName}-AuroraClusterId"
+
+  ClusterEngine:
+    Description: 'Aurora Cluster DB Engine'
+    Value: !Ref EngineParam
+    Export:
+      Name: !Sub "${AWS::StackName}-AuroraDBEngine"
 
   RDSId:
     Description: RDS ID

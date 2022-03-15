@@ -35,7 +35,7 @@ Metadata:
       #    - SourceRegionParam
 
       - 
-       Label:
+        Label:
          default: "Storage Configuration"
         Parameters:
 #aurora          - StorageTypeParam
@@ -245,10 +245,10 @@ Parameters:
 
 
   # Storage
-#aurora  KmsKeyParam:
-#  Description: "KMS Key ID  / null == No encryption"
-#    Type: String
-#    Default: "null"
+  KmsKeyParam:
+    Description: "KMS Key ID  / null == No encryption"
+    Type: String
+    Default: "null"
 
 
   # Availability

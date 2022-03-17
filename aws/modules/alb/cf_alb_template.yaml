@@ -3,6 +3,8 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   # Application Load Balancer Template
   * For AWS CloudFormation - Application Load Balancer Template
+  * You must create alb, after create 'Target Group'.
+
 
   ## Resources
   1. ElasticLoadBalancingV2::LoadBalancer

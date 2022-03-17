@@ -5,15 +5,10 @@ Description: >-
   * For AWS CloudFormation - RDS Basic Template
 
   ## DB Engine
-  * MariaDB
-  * MySQL
-  * Postgres
+  * PostgreSQL (Only)
 
-  ## How to create
-  * Basic => RDS Instance
-  * Multi => Standby
-  * Snapshot => Restore
-  * SourceDB => Read Replica
+  ## Resources
+  1. RDS Instance
 
 
 Metadata:
@@ -26,13 +21,6 @@ Metadata:
           - DBIdentifierNameParam
           - DBInstanceClassParam
 
-      #- 
-      #  Label:
-      #    default: "Snapshot & Read Replica Configuration"
-      #  Parameters:          
-      #    - DBSnapshotIdentifierParam
-      #    - SourceDBInstanceIdentifierParam
-      #    - SourceRegionParam
 
       - 
         Label:
@@ -56,10 +44,10 @@ Metadata:
           - MasterUserPasswordParam
           - PortParam
           - ParameterGroupNameParam
-          - OptionGroupNameParam
+#          - OptionGroupNameParam
         #  - TimezoneParam
         #  - CharacterSetNameParam
-          - CACertificateIdentifierParam
+#          - CACertificateIdentifierParam
 
       - 
         Label:
@@ -99,62 +87,10 @@ Metadata:
 
 Mappings:
   DBEngineMap:
-    mariadb:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
-    mysql:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
-    oracle-ee:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-ee-cdb:
-      Log: 
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-se2:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
-    oracle-cdb:
-      Log:
-        - alert
-        - audit
-        - listener
-        - trace
     postgres:
       Log:
         - postgresql
         - upgrade
-    sqlserver-ee:
-      Log:
-        - agent
-        - error
-    sqlserver-se:
-      Log:
-        - agent
-        - error
-    sqlserver-ex:
-      Log:
-        - agent
-        - error
-    sqlserver-web:
-      Log:
-        - agent
-        - error
 
 
 
@@ -175,8 +111,7 @@ Parameters:
       - db.m5.8xlarge
       - db.m5.12xlarge
       - db.m5.16xlarge
-      - db.t3.small
-      - db.t3.medium
+      - db.m5.24xlarge
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -184,24 +119,56 @@ Parameters:
       - db.r5.8xlarge
       - db.r5.12xlarge
       - db.r5.16xlarge
+      - db.r5.24xlarge
+      - db.t3.small
+      - db.t3.medium
+      - db.t3.large
+      - db.t3.xlarge
   EngineParam:
     Description: 'DB Engine Name'
     Type: String
+    Default: postgres
     AllowedValues:
-      - mariadb
-      - mysql
-      - oracle-ee
-      - oracle-ee-cdb  
-      - oracle-se2
-      - oracle-cdb
       - postgres
-      - sqlserver-ee
-      - sqlserver-se
-      - sqlserver-ex
-      - sqlserver-web
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
+    Default: '12.7'
+    AllowedValues:
+      - "9.6.9"
+      - "9.6.11"
+      - "9.6.15"
+      - "9.6.22"
+      - "9.6.23"
+      - "9.6.24"
+      - "10.17"
+      - "10.18"
+      - "10.19"
+      - "10.20"
+      - "11.1"
+      - "11.4"
+      - "11.5"
+      - "11.6"
+      - "11.8"
+      - "11.10"
+      - "11.12"
+      - "11.13"
+      - "11.14"
+      - "11.15"
+      - "12.6"
+      - "12.7"
+      - "12.8"
+      - "12.9"
+      - "12.10"
+      - "13.3"
+      - "13.4"
+      - "13.5"
+      - "13.6"
+      - "14.1"
+      - "14.2"
+
+
+
 #  LicenseModelParam:
 #    Description: 'Licent Model'
 #    Type: String
@@ -226,34 +193,34 @@ Parameters:
 #      - 'us-east-1'
 #      - 'ap-northeast-2'
 
-  DatabaseNameParam:
+  DatabaseNameParam:  #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Database Name'
     Type: String
     Default: 'database12'
-  MasterUsernameParam:
+  MasterUsernameParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Master Username'
     Type: String
     Default: 'test12'
-  MasterUserPasswordParam:
+  MasterUserPasswordParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Master User Password'
     Type: String
     Default: 'testtest12!'
-  PortParam:
+  PortParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Database Port Number'
     Type: String
-    Default: '5432'
+    Default: '15432'
   ParameterGroupNameParam:
     Description: 'Parameter Group Name'
     Type: String
     Default: 'null'
-  OptionGroupNameParam:
-    Description: 'Option Group Name / If engine is postgres, set null'
-    Type: String
-    Default: 'null'
-  CACertificateIdentifierParam:
-    Description: 'CA Certification / null == rds-ca-2019'
-    Type: String
-    Default: 'null'
+#  OptionGroupNameParam:
+#    Description: 'Option Group Name / If engine is postgres, set null'
+#    Type: String
+#    Default: 'null'
+#  CACertificateIdentifierParam:
+#    Description: 'CA Certification / null == rds-ca-2019'
+#    Type: String
+#    Default: 'null'
     #AllowedValues: 
 #  TimezoneParam:
 #    Description: ''
@@ -269,11 +236,11 @@ Parameters:
 
   # Network
   PubliclyAccessibleParam:
-    Description: 'Can publicly access db? (ex> true,false)'
+    Description: 'Publicly access is false (Only)'
     Type: String
     Default: false
     AllowedValues:
-      - true
+#      - true
       - false
   SubnetGroupNameParam:
     Description: 'Subnet Group Name'
@@ -285,8 +252,10 @@ Parameters:
     Default: 'null'
   SecurityGroupListParam:
     Description: 'Security Group List'
-    Type: List<AWS::EC2::SecurityGroup::Id>
-
+#    Type: List<AWS::EC2::SecurityGroup::Id>
+    Type: CommaDelimitedList
+    #Type: List<AWS::EC2::SecurityGroup::Id>
+    Default: 'default'
 
   # Storage
   StorageTypeParam:
@@ -308,7 +277,7 @@ Parameters:
 #    MinValue: 1000
 #    MaxValue: 80000
   MaxAllocatedStorageParam:
-    Description: 'Does DB server increase storage (MinValue: 101GiB / MaxValue: 65536GiB)'
+    Description: 'Does DB server increase storage (MinValue: 101GiB / MaxValue: 65536GiB), O is not use MaxAllocatedStorage'
     Type: Number
     Default: 0
     MaxValue: 65536
@@ -378,12 +347,12 @@ Conditions:
   IncreasesStroage: !Not [!Equals [!Ref MaxAllocatedStorageParam, 0]]
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
   IsMultiAz: !Equals [!Ref MultiAzParam, true]
-  SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
+#  SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
   SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
   IsPostgres: !Equals [!Ref EngineParam, 'postgres']
-  SupportsOptionGroup: !Not [!Equals [!Ref EngineParam, 'postgres']]
+#  SupportsOptionGroup: !Not [!Equals [!Ref EngineParam, 'postgres']]
 
 
 Resources:
@@ -402,10 +371,10 @@ Resources:
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
       DBParameterGroupName: !Ref ParameterGroupNameParam
-      OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
+#      OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
       #Timezone: !Ref TimezoneParam
       #CharacterSetName: !Ref CharacterSetNameParam
-      CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
+#      CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
 
       #EnableIAMDatabaseAuthentication: String
       #AssociatedRoles: 

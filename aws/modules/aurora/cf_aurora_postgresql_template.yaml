@@ -98,13 +98,13 @@ Parameters:
     Type: String
     Default: 'rds-y2-test-cluster'
   DBIdentifierNameParam:
-    Description: 'RDS Identifier Name / If input abc, DB ID is <AuroraClusterName + - + abc>'
+    Description: 'RDS Identifier Name'
     Type: String
     Default: 'null'
   DBInstanceClassParam:
     Description: 'DB Instance Class'
     Type: String
-    Default: db.r3.large
+    Default: db.r5.large
     AllowedValues:
       - db.r5.large
       - db.r5.xlarge
@@ -209,13 +209,13 @@ Parameters:
     Description: 'Subnet Group Name'
     Type: String
     Default: 'sg-cluster-y2-test'
-  AzParam:
+  AzParam:  #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Availability Zone'
     Type: AWS::EC2::AvailabilityZone::Name
     Default: 'ap-northeast-2a'
-    AllowedValues:
-      - 'ap-northeast-2a'
-      - 'ap-northeast-2c'
+#    AllowedValues:
+#      - 'ap-northeast-2a'
+#      - 'ap-northeast-2c'
   SecurityGroupListParam:
     Description: 'Security Group List'
     Type: CommaDelimitedList

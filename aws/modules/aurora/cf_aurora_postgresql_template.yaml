@@ -3,39 +3,18 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   # Aurora Cluster Template
   * For AWS CloudFormation - Aurora Cluster Template
+  * You must create aurora cluster and instance, after create 'Subnet Group', 'Cluster Parameter Group', 'Parameter Group'.
 
 
   ## DB Engine
-  * MySQL
-  * Postgres
+  * PostgreSQL (Only)
 
 
   ## Resources
-  1. 
-  2. DB Storage Type
-    * Only gp2
-  3. 
-  4. 
+  1. Aurora Cluster
+  2. RDS Instance
 
 
-  ## Parameter
-
-
-  ## Create Aurora
-  * Basic => Aurora Cluster & Write/Read Instance
-  * Snapshot => Restore
-  * SourceDB & ResotreType => Clone
-  * ReplicationSourceIdentifier => Cross-Region Read Replica
-
-#SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
-
-#ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
-      
-#SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
-#SourceRegion: !Ref SourceRegionParam
-#RestoreType: !Ref RestoreTypeParam
-
-#UseLatestRestorableTime: Boolean
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -45,7 +24,6 @@ Metadata:
           default: "Aurora Cluster Configuration"
         Parameters:
           - DBClusterIdentifierParam
-        #  - GlobalClusterIdentifierParam
 
       - 
         Label:
@@ -54,14 +32,6 @@ Metadata:
           - DBIdentifierNameParam
           - DBInstanceClassParam
           - PromotionTierParam
-
-      #- 
-      #  Label:
-      #    default: "Snapshot & Replica & Restore Configuration"
-      #  Parameters:          
-      #    - DBSnapshotIdentifierParam
-      #    - SourceDBClusterIdentifierParam
-      #    - SourceRegionParam
 
       - 
         Label:
@@ -81,7 +51,7 @@ Metadata:
           - PortParam
           - ClusterParameterGroupNameParam
           - ParameterGroupNameParam
-          - CACertificateIdentifierParam
+#          - CACertificateIdentifierParam
 
       - 
         Label:
@@ -116,18 +86,6 @@ Metadata:
 
 Mappings:
   DBEngineMap:
-    aurora:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
-    aurora-mysql:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
     aurora-postgresql:
       Log:
         - postgresql
@@ -139,10 +97,6 @@ Parameters:
     Description: 'Aurora Cluster Name'
     Type: String
     Default: 'rds-y2-test-cluster'
-#  GlobalClusterIdentifierParam:
-#    Description: 'Aurora Global Cluster Name'
-#    Type: String
-#    Default: 'null'
   DBIdentifierNameParam:
     Description: 'RDS Identifier Name / If input abc, DB ID is <AuroraClusterName + - + abc>'
     Type: String
@@ -152,16 +106,16 @@ Parameters:
     Type: String
     Default: db.r3.large
     AllowedValues:
-      - db.r3.large
-      - db.t3.medium
-      - db.t3.large
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
       - db.r5.4xlarge
       - db.r5.8xlarge
       - db.r5.12xlarge
-      - db.r5.16xlarge   
+      - db.r5.16xlarge  
+      - db.r5.24xlarge
+      - db.t3.medium
+      - db.t3.large 
   PromotionTierParam:
     Description: 'Promotion Tier : 0 ~ 15 (Default: 1)/ for failover'
     Type: Number
@@ -170,54 +124,64 @@ Parameters:
     MaxValue: 15
 
 
-#  DBSnapshotIdentifierParam:
-#    Description: 'Snapshot ARN. Create db using Snapshot'
-#    Type: String
-#    Default: 'null'
-#  SourceDBClusterIdentifierParam:
-#    Description: 'Source DB Cluster ID, Create Replica'
-#    Type: String
-#    Default: 'null'
-#  SourceRegionParam:
-#    Description: 'Source DB Region, Create Replica'
-#    Type: String
-#    Default: 'null'
-#    AllowedValues:
-#      - 'null'
-#      - 'us-west-1'
-#      - 'us-east-1'
-#      - 'ap-northeast-2'
-
   EngineParam:
     Description: 'DB Engine Name'
     Type: String
+    Default: aurora-postgresql
     AllowedValues:
-      - aurora
-      - aurora-mysql
       - aurora-postgresql
   EngineVersionParam:
     Description: 'DB Engine Version'
     Type: String
-    Default: '5.7.mysql_aurora.2.10.0'
-    #AllowedValues:
-    #  - 
+    Default: '12.7'
+    AllowedValues:
+      - '10.13'
+      - '10.14'
+      - '10.16'
+      - '10.17'
+      - '10.18'
+      - '10.19'
+      - '11.6'
+      - '11.7'
+      - '11.8'
+      - '11.9'
+      - '11.11'
+      - '11.12'
+      - '11.13'
+      - '11.14'
+      - '12.4'
+      - '12.6'
+      - '12.7'
+      - '12.8'
+      - '13.3'
+      - '13.4'
+      - '13.5'
 
-  DatabaseNameParam:
+
+  DatabaseNameParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Database Name'
     Type: String
     Default: 'database12'   
-  MasterUsernameParam:
+    AllowedValues:
+      - 'database12'
+  MasterUsernameParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Master Username'
     Type: String
     Default: 'test12'
-  MasterUserPasswordParam:
+    AllowedValues:
+      - 'test12'
+  MasterUserPasswordParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Master User Password'
     Type: String
     Default: 'testtest12!'
-  PortParam:
+    AllowedValues:
+      - 'testtest12!'
+  PortParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: 'Database Port Number'
     Type: String
-    Default: '5432'
+    Default: '15432'
+    AllowedValues:
+      - '15432'
   ClusterParameterGroupNameParam:
     Description: 'Cluster Parameter Group Name'
     Type: String
@@ -226,20 +190,20 @@ Parameters:
     Description: 'Parameter Group Name'
     Type: String
     Default: 'null'
-  CACertificateIdentifierParam:
-    Description: 'CA Certification / null == rds-ca-2019'
-    Type: String
-    Default: 'null'
+#  CACertificateIdentifierParam:
+#    Description: 'CA Certification / null == rds-ca-2019'
+#    Type: String
+#    Default: 'null'
 
 
 
   # Network
   PubliclyAccessibleParam:
-    Description: 'Can publicly access db? (ex> true,false)'
+    Description: 'Publicly access (Only false)'
     Type: String
     Default: false
     AllowedValues:
-      - true
+#      - true
       - false  
   SubnetGroupNameParam:
     Description: 'Subnet Group Name'
@@ -248,15 +212,19 @@ Parameters:
   AzParam:
     Description: 'Availability Zone'
     Type: AWS::EC2::AvailabilityZone::Name
-    Default: 'null'
+    Default: 'ap-northeast-2a'
+    AllowedValues:
+      - 'ap-northeast-2a'
+      - 'ap-northeast-2c'
   SecurityGroupListParam:
     Description: 'Security Group List'
     Type: CommaDelimitedList
     #Type: List<AWS::EC2::SecurityGroup::Id>
+    Default: 'default'
 
 
   # Storage
-  KmsKeyParam:
+  KmsKeyParam: #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     Description: "KMS Key ID  / null == No encryption"
     Type: String
     Default: "null"
@@ -266,7 +234,7 @@ Parameters:
   BackupRetentionPeriodParam:
     Description: 'Backup Retention Period: 1 ~ 35 (Day)'
     Type: Number
-    Default: 1
+    Default: 7
     MinValue: 1
     MaxValue: 35
   PreferredBackupWindowParam:
@@ -309,7 +277,7 @@ Parameters:
 
 Conditions:
   IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
-  SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
+#  SupportsSSLTLS: !Not [!Equals [!Ref CACertificateIdentifierParam, 'null']]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
   UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
 
@@ -320,7 +288,6 @@ Resources:
     Properties:
       # DB Cluster
       DBClusterIdentifier: !Ref DBClusterIdentifierParam
-      #GlobalClusterIdentifier: !Ref GlobalClusterIdentifierParam # Not use other region
       Engine: !Ref EngineParam
       EngineVersion: !Ref EngineVersionParam
       EngineMode: 'provisioned'
@@ -336,25 +303,6 @@ Resources:
       #  - DBInstanceRole
  
 
-      # Snapshot & Replica & Restore
-      #SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
-      #ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
-      
-      #SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
-      #SourceRegion: !Ref SourceRegionParam
-
-      #RestoreType: !Ref RestoreTypeParam
-      
-
-      #UseLatestRestorableTime: Boolean
-      #ScalingConfiguration: #Serverless
-      #  AutoPause: Boolean
-      #  MaxCapacity: Integer
-      #  MinCapacity: Integer
-      #  SecondsUntilAutoPause: Integer
-
-
-
       # Storage
       StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
       KmsKeyId: !If [IsEncrypted, !Ref KmsKeyParam, !Ref AWS::NoValue]
@@ -362,7 +310,6 @@ Resources:
 
       # Network
       DBSubnetGroupName: !Ref SubnetGroupNameParam
-#      AvailabilityZones: !Ref AzsParam
       VpcSecurityGroupIds: !Ref SecurityGroupListParam
 
   
@@ -375,12 +322,10 @@ Resources:
       # Log & Maintenance
       EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref EngineParam, Log], !Ref AWS::NoValue]
       PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindowParam
-      #BacktrackWindows
 
 
       # Option
       DeletionProtection: true
-      #EnableHttpEndpoint: Boolean # Only Serverless
 
 
       Tags: 
@@ -395,14 +340,12 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       # DB Instance
-      #DBClusterIdentifier: !Ref DBClusterIdentifierParam
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceIdentifier: !Ref DBIdentifierNameParam
       DBInstanceClass: !Ref DBInstanceClassParam
       PromotionTier: !Ref PromotionTierParam
 
       # Database      
-      #Engine: !Ref EngineParam
       Engine: !Ref EngineParam
 #aurora      EngineVersion: !Ref EngineVersionParam
 #aurora      DBName: !Ref DatabaseNameParam
@@ -412,7 +355,7 @@ Resources:
       DBParameterGroupName: !Ref ParameterGroupNameParam
       #Timezone: !Ref TimezoneParam
       #CharacterSetName: !Ref CharacterSetNameParam
-      CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
+#      CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateIdentifierParam, !Ref AWS::NoValue]
 
 #aurora      #EnableIAMDatabaseAuthentication: String
       #AssociatedRoles: 

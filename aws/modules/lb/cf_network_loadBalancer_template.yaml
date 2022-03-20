@@ -20,19 +20,19 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "Load Balancer Configuration"
+          default: "VPC Configuration"
         Parameters:
-          - LBTypeParam
-          - LBNameParam
+          - VpcName
+          - VpcCidr
       - Label:
-          default: "Network Configuration"
+          default: "Subnet Configuration"
         Parameters:
-          - SchemeParam
-          - IpAddressTypeParam
-          - SubnetListParam
-          - SecurityGroupListParam
-
-
+          - PubSubNum
+          - PubSubNameList
+          - PubSubCidrList
+          - PriSubNum
+          - PriSubNameList
+          - PriSubCidrList
 Mappings:
   DBEngineMap:
     mariadb:
@@ -43,51 +43,45 @@ Mappings:
         - slowquery
 
 Parameters:
-  LBTypeParam:
-    Description: 'Load Balancer Type'
+  ProjInfix:
+    Description: Infix of Resource Name
     Type: String
-    Default: 'application'
-    AllowedValues:
-      - 'application'
-      - 'gateway'
-      - 'network'
-  LBNameParam:
-    Description: 'Load Balancer Name (Maximun: 36)'
+    Default: "y2-test"
+  VpcName:
+    Description: Name of VPC
     Type: String
-    MaxLength: 32
-    MinLength: 1
-    AllowedPattern: "^[^(internal-)][\w-]{1,32}$"
-
-  SchemeParam:
-    Description: 'Load Balancer Scheme : internet-facing / internal'
+    Default: "vpc-y2-test"
+  VpcCidr:
+    Description: CIDR of VPC
     Type: String
-    Default: 'internal'
-    AllowedValues:
-      - 'internet-facing'
-      - 'internal'
-  IpAddressTypeParam:
-    Description: 'IP Address Type : dualstack / ipv4'
-    Type: String
-    Default: 'ipv4'
-    AllowedValues:
-      - 'dualstack'
-      - 'ipv4'
-  SubnetListParam:
-    Description: 'Subnet List'
+    Default: "10.0.0.0/16"
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "
+  PubSubNum:
+    Description: Number of Public Subnet
+    Type: Number
+    AllowedPattern: ""
+    ConstraintDescription: "Parameter must only contain "
+  PubSubNameList:
+    Description: "Name List of Public Subnet"
+    Type: String 
+  PubSubCidrList:
+    Description: "CIDR List of Public Subnet"
     Type: CommaDelimitedList
-  SecurityGroupListParam:
-    Description: 'Security Group List'
-    TYpe: CommaDelimitedList
+    AllowedPattern: ""
+  PubSubAZList:
+    Description: "AZ List of Public Subnet"
+    Type: CommaDelimitedList
 
+Rules:
 
-#Rules:
 
 
 Conditions:
   IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
-
 Resources:
+
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -140,12 +134,14 @@ Resources:
 #        - Key: "load_balancing.cross_zone.enabled"
 #          Value: 
 
+          
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Ref LBNameParam
       
+
 
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -156,10 +152,11 @@ Resources:
         - Certificate
       DefaultActions: 
         - Action
-      LoadBalancerArn: !Ref LoadBalancer
-      Protocol: String
+      LoadBalancerArn: String
       Port: Integer
+      Protocol: String
       SslPolicy: String
+
 
 
   ListenerRule:
@@ -171,6 +168,13 @@ Resources:
         - RuleCondition
       ListenerArn: String
       Priority: Integer
+
+
+
+
+
+
+
 
 
  
@@ -187,9 +191,9 @@ Resources:
 
 
 Outputs:
-  LoadBalancerId:
-    Description: LoadBalancer ID
-    Value: !Ref LoadBalancer
+  InstanceId:
+    Description: Instance ID
+    Value: !Ref EC2Instance
     Export:
-      Name: !Sub "${AWS::StackName}-LoadBalancerId"
+      Name: !Sub "${AWS::StackName}-InstanceId"
 ...

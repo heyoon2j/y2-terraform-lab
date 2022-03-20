@@ -84,21 +84,32 @@ Resources:
 
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties: 
+    Properties:
+      # Basic Configuration
+      Type: !Ref LBTypeParam
+      Name: !Ref LBNameParam
+      Scheme: !Ref SchemeParam
       IpAddressType: String
-      LoadBalancerAttributes: 
-        - LoadBalancerAttribute
-      Name: String
-      Scheme: String
+
+
+      # Network Configuration
       SecurityGroups: 
         - String
       SubnetMappings: 
         - SubnetMapping
       Subnets: 
         - String
-      Tags: 
-        - Tag
-      Type: String
+
+
+      LoadBalancerAttributes: 
+        - LoadBalancerAttribute
+          
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref LBNameParam
+      
 
 
   Listener:
@@ -134,11 +145,7 @@ Resources:
 
 
 
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref VpcName
+
  
       Tags:
         - Key: CloudFormationStack

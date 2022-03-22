@@ -8,10 +8,6 @@ Description: >-
 
   ## Resources
   1. ElasticLoadBalancingV2::LoadBalancer
-  2. ElasticLoadBalancingV2::Listener
-  3. ElasticLoadBalancingV2::ListenerRule
-  * ElasticLoadBalancingV2::ListenerCertificate : X
-
 
   ## Parameter
 
@@ -32,7 +28,6 @@ Metadata:
           - SubnetListParam
           - SecurityGroupListParam
 
-
 Mappings:
   DBEngineMap:
     mariadb:
@@ -52,11 +47,11 @@ Parameters:
       - 'gateway'
       - 'network'
   LBNameParam:
-    Description: 'Load Balancer Name (Maximun: 36)'
+    Description: 'Load Balancer Name (Maximun: 32)'
     Type: String
     MaxLength: 32
     MinLength: 1
-    AllowedPattern: "^[^(internal-)][\w-]{1,32}$"
+    AllowedPattern: "^(?!internal\-)[0-9a-zA-Z\-]{1,32}$"
 
   SchemeParam:
     Description: 'Load Balancer Scheme : internet-facing / internal'
@@ -75,16 +70,17 @@ Parameters:
   SubnetListParam:
     Description: 'Subnet List'
     Type: CommaDelimitedList
+    # subnet-0b9f3f5f42213970e,subnet-0aa8348952ce73b14
   SecurityGroupListParam:
     Description: 'Security Group List'
-    TYpe: CommaDelimitedList
-
+    Type: CommaDelimitedList
+    # sg-05b5cd25857dcb617
 
 #Rules:
 
 
-Conditions:
-  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
+#Conditions:
+#  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
 
 Resources:
@@ -101,10 +97,8 @@ Resources:
       # Network Configuration
       #SubnetMappings: 
       #  - SubnetMapping
-      Subnets: 
-        - !Ref SubnetListParam
-      SecurityGroups: 
-        - !Ref SecurityGroupLIstParam
+      Subnets: !Ref SubnetListParam
+      SecurityGroups: !Ref SecurityGroupListParam
 
 
       LoadBalancerAttributes:
@@ -146,44 +140,6 @@ Resources:
         - Key: Name
           Value: !Ref LBNameParam
       
-
-  Listener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties: 
-      AlpnPolicy: 
-        - String
-      Certificates: 
-        - Certificate
-      DefaultActions: 
-        - Action
-      LoadBalancerArn: !Ref LoadBalancer
-      Protocol: String
-      Port: Integer
-      SslPolicy: String
-
-
-  ListenerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    Properties: 
-      Actions: 
-        - Action
-      Conditions: 
-        - RuleCondition
-      ListenerArn: String
-      Priority: Integer
-
-
- 
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'sg-'
-              - !Ref NameInfix
-              - '-default'
-
 
 
 Outputs:

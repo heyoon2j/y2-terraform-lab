@@ -51,7 +51,7 @@ Parameters:
     Type: String
     MaxLength: 32
     MinLength: 1
-    AllowedPattern: "^(?!internal\-)[0-9a-zA-Z\-]{1,32}$"
+    AllowedPattern: "^(?!internal-)[0-9a-zA-Z-]{1,32}$"
 
   SchemeParam:
     Description: 'Load Balancer Scheme : internet-facing / internal'

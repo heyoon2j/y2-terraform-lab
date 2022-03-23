@@ -8,10 +8,6 @@ Description: >-
 
   ## Resources
   1. ElasticLoadBalancingV2::LoadBalancer
-  2. ElasticLoadBalancingV2::Listener
-  3. ElasticLoadBalancingV2::ListenerRule
-  * ElasticLoadBalancingV2::ListenerCertificate : X
-
 
   ## Parameter
 
@@ -20,19 +16,18 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "VPC Configuration"
+          default: "Load Balancer Configuration"
         Parameters:
-          - VpcName
-          - VpcCidr
+          - LBTypeParam
+          - LBNameParam
       - Label:
-          default: "Subnet Configuration"
+          default: "Network Configuration"
         Parameters:
-          - PubSubNum
-          - PubSubNameList
-          - PubSubCidrList
-          - PriSubNum
-          - PriSubNameList
-          - PriSubCidrList
+          - SchemeParam
+          - IpAddressTypeParam
+          - SubnetListParam
+          - SecurityGroupListParam
+
 Mappings:
   DBEngineMap:
     mariadb:
@@ -43,45 +38,52 @@ Mappings:
         - slowquery
 
 Parameters:
-  ProjInfix:
-    Description: Infix of Resource Name
+  LBTypeParam:
+    Description: 'Load Balancer Type'
     Type: String
-    Default: "y2-test"
-  VpcName:
-    Description: Name of VPC
+    Default: 'application'
+    AllowedValues:
+      - 'application'
+      - 'gateway'
+      - 'network'
+  LBNameParam:
+    Description: 'Load Balancer Name (Maximun: 32)'
     Type: String
-    Default: "vpc-y2-test"
-  VpcCidr:
-    Description: CIDR of VPC
+    MaxLength: 32
+    MinLength: 1
+    AllowedPattern: "^(?!internal\-)[0-9a-zA-Z\-]{1,32}$"
+
+  SchemeParam:
+    Description: 'Load Balancer Scheme : internet-facing / internal'
     Type: String
-    Default: "10.0.0.0/16"
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
-  PubSubNum:
-    Description: Number of Public Subnet
-    Type: Number
-    AllowedPattern: ""
-    ConstraintDescription: "Parameter must only contain "
-  PubSubNameList:
-    Description: "Name List of Public Subnet"
-    Type: String 
-  PubSubCidrList:
-    Description: "CIDR List of Public Subnet"
+    Default: 'internal'
+    AllowedValues:
+      - 'internet-facing'
+      - 'internal'
+  IpAddressTypeParam:
+    Description: 'IP Address Type : dualstack / ipv4'
+    Type: String
+    Default: 'ipv4'
+    AllowedValues:
+      - 'dualstack'
+      - 'ipv4'
+  SubnetListParam:
+    Description: 'Subnet List'
     Type: CommaDelimitedList
-    AllowedPattern: ""
-  PubSubAZList:
-    Description: "AZ List of Public Subnet"
+    # subnet-0b9f3f5f42213970e,subnet-0aa8348952ce73b14
+  SecurityGroupListParam:
+    Description: 'Security Group List'
     Type: CommaDelimitedList
+    # sg-05b5cd25857dcb617
 
-Rules:
+#Rules:
 
 
+#Conditions:
+#  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
-Conditions:
-  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
 
 Resources:
-
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -95,10 +97,8 @@ Resources:
       # Network Configuration
       #SubnetMappings: 
       #  - SubnetMapping
-      Subnets: 
-        - !Ref SubnetListParam
-      SecurityGroups: 
-        - !Ref SecurityGroupLIstParam
+      Subnets: !Ref SubnetListParam
+      SecurityGroups: !Ref SecurityGroupListParam
 
 
       LoadBalancerAttributes:
@@ -134,7 +134,6 @@ Resources:
 #        - Key: "load_balancing.cross_zone.enabled"
 #          Value: 
 
-          
       Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
@@ -143,57 +142,10 @@ Resources:
       
 
 
-  Listener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties: 
-      AlpnPolicy: 
-        - String
-      Certificates: 
-        - Certificate
-      DefaultActions: 
-        - Action
-      LoadBalancerArn: String
-      Port: Integer
-      Protocol: String
-      SslPolicy: String
-
-
-
-  ListenerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    Properties: 
-      Actions: 
-        - Action
-      Conditions: 
-        - RuleCondition
-      ListenerArn: String
-      Priority: Integer
-
-
-
-
-
-
-
-
-
- 
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: Fn::Join
-            - ''
-            - - 'sg-'
-              - !Ref NameInfix
-              - '-default'
-
-
-
 Outputs:
-  InstanceId:
-    Description: Instance ID
-    Value: !Ref EC2Instance
+  LoadBalancerId:
+    Description: LoadBalancer ID
+    Value: !Ref LoadBalancer
     Export:
-      Name: !Sub "${AWS::StackName}-InstanceId"
+      Name: !Sub "${AWS::StackName}-LoadBalancerId"
 ...

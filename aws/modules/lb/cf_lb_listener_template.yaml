@@ -1,0 +1,130 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # Application Load Balancer Template
+  * For AWS CloudFormation - Application Load Balancer Template
+  * You must create alb, after create 'Target Group'.
+
+
+  ## Resources
+  1. AWS::ElasticLoadBalancingV2::Listener
+  2. AWS::ElasticLoadBalancingV2::ListenerRule RuleCondition
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Load Balancer Listener Configuration"
+        Parameters:
+          - LBNameParam
+
+
+#Mappings:
+#  DBEngineMap:
+#    mariadb:
+#      Log:
+#        - audit
+#        - error
+#        - general
+#        - slowquery
+
+
+Parameters:
+  LBNameParam:
+    Description: 'Load Balancer Name (Maximun: 36)'
+    Type: String
+    MaxLength: 32
+    MinLength: 1
+    AllowedPattern: "^(?!internal\-)[0-9a-zA-Z\-]{1,32}$"
+
+
+#Rules:
+
+
+#Conditions:
+#  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
+
+
+Resources:
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties: 
+      LoadBalancerArn: String
+      Port: Integer           # 1 ~ 65535
+      Protocol: String
+      # Application : HTTP | HTTPS
+      # Network : TCP | TCP_UDP | TLS | UDP
+
+      DefaultActions: 
+        - AuthenticateCognitoConfig: 
+            AuthenticateCognitoConfig
+          AuthenticateOidcConfig: 
+            AuthenticateOidcConfig
+          FixedResponseConfig: 
+            FixedResponseConfig
+          ForwardConfig: 
+            ForwardConfig
+          Order: Integer
+          RedirectConfig: 
+            RedirectConfig
+          TargetGroupArn: String
+          Type: String
+
+      AlpnPolicy: 
+        - String
+      Certificates: 
+        - CertificateArn: String
+      SslPolicy: String
+
+
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: String 
+      Actions: 
+        - AuthenticateCognitoConfig: 
+            AuthenticateCognitoConfig
+          AuthenticateOidcConfig: 
+            AuthenticateOidcConfig
+          FixedResponseConfig: 
+            FixedResponseConfig
+          ForwardConfig: 
+            ForwardConfig
+          Order: Integer
+          RedirectConfig: 
+            RedirectConfig
+          TargetGroupArn: String
+          Type: String
+
+      Conditions:
+        - Field: String
+          HostHeaderConfig: 
+            HostHeaderConfig
+          HttpHeaderConfig: 
+            HttpHeaderConfig
+          HttpRequestMethodConfig: 
+            HttpRequestMethodConfig
+          PathPatternConfig: 
+            PathPatternConfig
+          QueryStringConfig: 
+            QueryStringConfig
+          SourceIpConfig: 
+            SourceIpConfig
+          Values: 
+            - String
+      Priority: Integer
+
+
+
+#Outputs:
+#  LoadBalancerId:
+#    Description: LoadBalancer ID
+#    Value: !Ref LoadBalancer
+#    Export:
+#      Name: !Sub "${AWS::StackName}-LoadBalancerId"
+...

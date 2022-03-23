@@ -1,0 +1,197 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # Application Load Balancer Template
+  * For AWS CloudFormation - Application Load Balancer Template
+  * You must create alb, after create 'Target Group'.
+
+
+  ## Resources
+  1. ElasticLoadBalancingV2::LoadBalancer
+
+  ## Parameter
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Load Balancer Configuration"
+        Parameters:
+          - LBTypeParam
+          - LBNameParam
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - SchemeParam
+          - IpAddressTypeParam
+          - SubnetListParam
+          - SecurityGroupListParam
+
+Mappings:
+  DBEngineMap:
+    mariadb:
+      Log:
+        - audit
+        - error
+        - general
+        - slowquery
+
+Parameters:
+  LBTypeParam:
+    Description: 'Load Balancer Type'
+    Type: String
+    Default: 'application'
+    AllowedValues:
+      - 'application'
+      - 'gateway'
+      - 'network'
+  LBNameParam:
+    Description: 'Load Balancer Name (Maximun: 32)'
+    Type: String
+    MaxLength: 32
+    MinLength: 1
+    AllowedPattern: "^(?!internal-)[0-9a-zA-Z-]{1,32}$"
+
+  SchemeParam:
+    Description: 'Load Balancer Scheme : internet-facing / internal'
+    Type: String
+    Default: 'internal'
+    AllowedValues:
+      - 'internet-facing'
+      - 'internal'
+  IpAddressTypeParam:
+    Description: 'IP Address Type : dualstack / ipv4'
+    Type: String
+    Default: 'ipv4'
+    AllowedValues:
+      - 'dualstack'
+      - 'ipv4'
+  SubnetListParam:
+    Description: 'Subnet List'
+    Type: CommaDelimitedList
+    # subnet-0b9f3f5f42213970e,subnet-0aa8348952ce73b14
+  SecurityGroupListParam:
+    Description: 'Security Group List'
+    Type: CommaDelimitedList
+    # sg-05b5cd25857dcb617
+
+#Rules:
+
+
+#Conditions:
+#  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
+
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccelerateConfiguration: 
+        AccelerateConfiguration
+      AccessControl: String
+      AnalyticsConfigurations: 
+        - AnalyticsConfiguration
+      BucketEncryption: 
+        BucketEncryption
+      BucketName: String
+      CorsConfiguration: 
+        CorsConfiguration
+      IntelligentTieringConfigurations: 
+        - IntelligentTieringConfiguration
+      InventoryConfigurations: 
+        - InventoryConfiguration
+      LifecycleConfiguration: 
+        LifecycleConfiguration
+      LoggingConfiguration: 
+        LoggingConfiguration
+      MetricsConfigurations: 
+        - MetricsConfiguration
+      NotificationConfiguration: 
+        NotificationConfiguration
+      ObjectLockConfiguration: 
+        ObjectLockConfiguration
+      ObjectLockEnabled: Boolean
+      OwnershipControls: 
+        OwnershipControls
+      PublicAccessBlockConfiguration: 
+        PublicAccessBlockConfiguration
+      ReplicationConfiguration: 
+        ReplicationConfiguration
+      Tags: 
+        - Tag
+      VersioningConfiguration: 
+        VersioningConfiguration
+      WebsiteConfiguration: 
+        WebsiteConfiguration
+
+
+
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      # Basic Configuration
+      Type: !Ref LBTypeParam
+      Name: !Ref LBNameParam
+      Scheme: !Ref SchemeParam
+      IpAddressType: !Ref IpAddressTypeParam
+
+
+      # Network Configuration
+      #SubnetMappings: 
+      #  - SubnetMapping
+      Subnets: !Ref SubnetListParam
+      SecurityGroups: !Ref SecurityGroupListParam
+
+
+      LoadBalancerAttributes:
+        # All LB
+        - Key: "deletion_protection.enabled"
+          Value: false  # true
+
+        # Application LB and Network LB
+#        - Key: "access_logs.s3.enabled"
+#          Value: 
+#        - Key: "access_logs.s3.bucket"
+#          Value: 
+#        - Key: "access_logs.s3.prefix"
+#          Value: 
+#        - Key: "ipv6.deny_all_igw_traffic"
+#          Value: 
+        # Only Application LB
+#        - Key: "idle_timeout.timeout_seconds"
+#          Value: 
+#        - Key: "routing.http.desync_mitigation_mode"
+#          Value: 
+#        - Key: "routing.http.drop_invalid_header_fields.enabled"
+#          Value: 
+#        - Key: "routing.http.x_amzn_tls_version_and_cipher_suite.enabled"
+#          Value: 
+#        - Key: "routing.http.xff_client_port.enabled"
+#          Value: 
+#        - Key: "routing.http2.enabled"
+#          Value: 
+#        - Key: "waf.fail_open.enabled "
+#          Value: 
+        # Network LB and Gateway LB
+#        - Key: "load_balancing.cross_zone.enabled"
+#          Value: 
+
+      Tags:
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref LBNameParam
+      
+
+
+Outputs:
+  S3ARN:
+    Description: S3 Bucket ID
+    Value: !Ref LoadBalancer
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketArn"
+...
+
+

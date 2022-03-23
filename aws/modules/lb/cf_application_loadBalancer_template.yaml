@@ -150,15 +150,16 @@ Resources:
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties: 
+      LoadBalancerArn: !Ref LoadBalancer
+      Protocol: String
+      Port: Integer
+            
       AlpnPolicy: 
         - String
       Certificates: 
         - Certificate
       DefaultActions: 
         - Action
-      LoadBalancerArn: !Ref LoadBalancer
-      Protocol: String
-      Port: Integer
       SslPolicy: String
 
 

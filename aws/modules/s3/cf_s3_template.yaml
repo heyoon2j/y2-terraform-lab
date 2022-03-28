@@ -87,6 +87,8 @@ Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
+
+      #  For Edge Location (AWS CloudFront)
       AccelerateConfiguration: 
         AccelerateConfiguration
       AccessControl: String

@@ -88,9 +88,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties: 
 
-      #  For Edge Location (AWS CloudFront)
-      AccelerateConfiguration: 
-        AccelerateConfiguration
+      # Transfer Accelerate for Edge Location (AWS CloudFront)
+#      AccelerateConfiguration: 
+#        AccelerationStatus: Suspended   # Enabled | Suspended
+
+      
       AccessControl: String
       AnalyticsConfigurations: 
         - AnalyticsConfiguration

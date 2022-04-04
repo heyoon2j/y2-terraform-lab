@@ -79,57 +79,101 @@ Parameters:
 #Rules:
 
 
-#Conditions:
+Conditions:
 #  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
+  IsEncrypted: !Not [!Equals [!Ref KeyIDParam,"null"]]
+
+
 
 
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
+      BucketName: String
 
-      # Transfer Accelerate for Edge Location (AWS CloudFront)
-#      AccelerateConfiguration: 
-#        AccelerationStatus: Suspended   # Enabled | Suspended
 
+<<<<<<< HEAD
       
       AccessControl: String
 
       
       AnalyticsConfigurations: 
         - AnalyticsConfiguration
+=======
+
+      # Security
+>>>>>>> 12d677aa1bd9613a3cd7fa8374a2ca7223ad88b1
       BucketEncryption: 
         BucketEncryption
-      BucketName: String
+
+      PublicAccessBlockConfiguration: 
+        ServerSideEncryptionConfiguration: 
+          - BucketKeyEnabled: 
+            ServerSideEncryptionByDefault: 
+                KMSMasterKeyID: String
+                SSEAlgorithm: String  # AES256 | aws:kms
+
+
+
+
+      AccessControl: String
       CorsConfiguration: 
-        CorsConfiguration
-      IntelligentTieringConfigurations: 
-        - IntelligentTieringConfiguration
-      InventoryConfigurations: 
-        - InventoryConfiguration
+        CorsConfiguration      
+
+      VersioningConfiguration: 
+        VersioningConfiguration
+      ObjectLockEnabled: Boolean
+      ObjectLockConfiguration: 
+        ObjectLockConfiguration
+      
+
+
+
+
+      # Management
       LifecycleConfiguration: 
         LifecycleConfiguration
       LoggingConfiguration: 
         LoggingConfiguration
+
+      #AnalyticsConfigurations: 
+      #  - AnalyticsConfiguration
+
+
+      IntelligentTieringConfigurations: 
+        - IntelligentTieringConfiguration
+      InventoryConfigurations: 
+        - InventoryConfiguration
+
       MetricsConfigurations: 
         - MetricsConfiguration
       NotificationConfiguration: 
         NotificationConfiguration
-      ObjectLockConfiguration: 
-        ObjectLockConfiguration
-      ObjectLockEnabled: Boolean
+
       OwnershipControls: 
         OwnershipControls
-      PublicAccessBlockConfiguration: 
-        PublicAccessBlockConfiguration
+
       ReplicationConfiguration: 
         ReplicationConfiguration
+
+        
       Tags: 
-        - Tag
-      VersioningConfiguration: 
-        VersioningConfiguration
-      WebsiteConfiguration: 
-        WebsiteConfiguration
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref BucketNameParam
+
+
+      # Other
+
+      # Transfer Accelerate for Edge Location (AWS CloudFront)
+      #AccelerateConfiguration: 
+      #  AccelerationStatus: Suspended   # Enabled | Suspended
+
+      # Web Service
+      #WebsiteConfiguration: 
+      #  WebsiteConfiguration
 
 
 

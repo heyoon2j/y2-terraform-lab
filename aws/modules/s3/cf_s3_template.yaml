@@ -94,6 +94,8 @@ Resources:
 
       
       AccessControl: String
+
+      
       AnalyticsConfigurations: 
         - AnalyticsConfiguration
       BucketEncryption: 

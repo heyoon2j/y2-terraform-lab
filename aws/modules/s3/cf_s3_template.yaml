@@ -81,7 +81,7 @@ Parameters:
 
 Conditions:
 #  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
-  IsEncrypted: !Not [!Equals [!Ref KeyIDParam,"null"]]
+  IsEncrypted: !Not [!Equals [!Ref BucketKeyEnabledParam,"null"]]
 
 
 
@@ -101,8 +101,8 @@ Resources:
       PublicAccessBlockConfiguration: 
         ServerSideEncryptionConfiguration: 
           - BucketKeyEnabled: 
-            ServerSideEncryptionByDefault: 
-                KMSMasterKeyID: String
+            ServerSideEncryptionByDefault:
+                KMSMasterKeyID: !If [IsEncrypted, !Ref KeyIDParam, !Ref AWS::NoValue]
                 SSEAlgorithm: String  # AES256 | aws:kms
 
 

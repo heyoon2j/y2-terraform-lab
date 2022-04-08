@@ -16,223 +16,162 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "Load Balancer Configuration"
+          default: "Bucket Configuration"
         Parameters:
-          - LBTypeParam
-          - LBNameParam
-      - Label:
-          default: "Network Configuration"
-        Parameters:
-          - SchemeParam
-          - IpAddressTypeParam
-          - SubnetListParam
-          - SecurityGroupListParam
+          - BucketNameParam
+          - BucketKeyEnabledParam
+          - KeyIDParam
+#          - PolicyDocumentParam
 
-Mappings:
-  DBEngineMap:
-    mariadb:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
+
+#Mappings:
+
+
 
 Parameters:
-  LBTypeParam:
-    Description: 'Load Balancer Type'
+  BucketNameParam:
+    Description: 'Bucket Name'
     Type: String
-    Default: 'application'
+    Default: "s3-y2j-cf-test12"
+  BucketKeyEnabledParam:
+    Description: 'Server-side encryption using KMS : true, false (Default: false)
+    Type: String
+    Default: "false"
     AllowedValues:
-      - 'application'
-      - 'gateway'
-      - 'network'
-  LBNameParam:
-    Description: 'Load Balancer Name (Maximun: 32)'
+      - 'false'
+      - 'true'
+  KeyIDParam:
+    Description: 'KMS Key ID'
     Type: String
-    MaxLength: 32
-    MinLength: 1
-    AllowedPattern: "^(?!internal-)[0-9a-zA-Z-]{1,32}$"
-
-  SchemeParam:
-    Description: 'Load Balancer Scheme : internet-facing / internal'
-    Type: String
-    Default: 'internal'
-    AllowedValues:
-      - 'internet-facing'
-      - 'internal'
-  IpAddressTypeParam:
-    Description: 'IP Address Type : dualstack / ipv4'
-    Type: String
-    Default: 'ipv4'
-    AllowedValues:
-      - 'dualstack'
-      - 'ipv4'
-  SubnetListParam:
-    Description: 'Subnet List'
-    Type: CommaDelimitedList
-    # subnet-0b9f3f5f42213970e,subnet-0aa8348952ce73b14
-  SecurityGroupListParam:
-    Description: 'Security Group List'
-    Type: CommaDelimitedList
-    # sg-05b5cd25857dcb617
+    Default: "null"
+#  PolicyDocumentParam:
+#    Description: ''
+#    Type: String
+   
 
 #Rules:
 
 
 Conditions:
-#  IsPubSub1: !Not [!Equals [!Select [0, !Ref PubSubAZList], ""]]
-  IsEncrypted: !Not [!Equals [!Ref BucketKeyEnabledParam,"null"]]
-
-
+  IsEncrypted: !Not [!Equals [!Ref BucketKeyEnabledParam, "null"]]
+  UsesKMS: !Not [!Equals [!Ref KeyIDParam, "null"]]  
 
 
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: String
-
-
+      BucketName: !Ref BucketNameParam
 
       # Security
       BucketEncryption: 
-        BucketEncryption
-
-      PublicAccessBlockConfiguration: 
         ServerSideEncryptionConfiguration: 
-          - BucketKeyEnabled: 
+          - BucketKeyEnabled: !Ref BucketKeyEnabledParam
             ServerSideEncryptionByDefault:
                 KMSMasterKeyID: !If [IsEncrypted, !Ref KeyIDParam, !Ref AWS::NoValue]
-                SSEAlgorithm: String  # AES256 | aws:kms
+                SSEAlgorithm: !If [IsEncrypted, !If [UsesKMS, "aws:kms", AES256"], !Ref AWS::NoValue]
+
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
+      OwnershipControls: 
+        Rules: # BucketOwnerEnforced| ObjectWriter| BucketOwnerPreferred
+          - OwnershipControlsRule: BucketOwnerEnforced
+
+#      AccessControl: String
+#      CorsConfiguration: 
+#        CorsConfiguration      
 
 
-
-
-      AccessControl: String
-      CorsConfiguration: 
-        CorsConfiguration      
-
+      # Object Management
       VersioningConfiguration: 
-        VersioningConfiguration
-      ObjectLockEnabled: Boolean
-      ObjectLockConfiguration: 
-        ObjectLockConfiguration
+          Status: Suspended
+      
+      ObjectLockEnabled: false
+#      ObjectLockConfiguration: 
+#        ObjectLockConfiguration
       
 
 
+      # Bucket Management
+#      LifecycleConfiguration: 
+#        LifecycleConfiguration
+
+#      LoggingConfiguration: 
+#        DestinationBucketName: String
+#        LogFilePrefix: String
+
+#      MetricsConfigurations: 
+#        - MetricsConfiguration
 
 
-      # Management
-      LifecycleConfiguration: 
-        LifecycleConfiguration
-      LoggingConfiguration: 
-        LoggingConfiguration
-
-      #AnalyticsConfigurations: 
-      #  - AnalyticsConfiguration
-
-
-      IntelligentTieringConfigurations: 
-        - IntelligentTieringConfiguration
-      InventoryConfigurations: 
-        - InventoryConfiguration
-
-      MetricsConfigurations: 
-        - MetricsConfiguration
-      NotificationConfiguration: 
-        NotificationConfiguration
-
-      OwnershipControls: 
-        OwnershipControls
-
-      ReplicationConfiguration: 
-        ReplicationConfiguration
-
-        
-      Tags: 
+      Tags:
         - Key: CloudFormationStack
           Value: !Ref 'AWS::StackId'
         - Key: Name
           Value: !Ref BucketNameParam
 
 
+################## Not Use ##################
+#      NotificationConfiguration: 
+#        NotificationConfiguration
+
+#      AnalyticsConfigurations: 
+#        - AnalyticsConfiguration
+
+#      IntelligentTieringConfigurations: 
+#        - IntelligentTieringConfiguration
+      
+#      InventoryConfigurations: 
+#        - InventoryConfiguration
+
+#     ReplicationConfiguration: 
+#        ReplicationConfiguration
+
+
       # Other
 
       # Transfer Accelerate for Edge Location (AWS CloudFront)
-      #AccelerateConfiguration: 
-      #  AccelerationStatus: Suspended   # Enabled | Suspended
+#      AccelerateConfiguration: 
+#        AccelerationStatus: Suspended   # Enabled | Suspended
 
       # Web Service
-      #WebsiteConfiguration: 
-      #  WebsiteConfiguration
+#      WebsiteConfiguration: 
+#        WebsiteConfiguration
 
 
 
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref BucketNameParam
+      PolicyDocument: ''
+#        Version: 2012-10-17
+#        Statement:
+#          - Action:
+#              - 's3:GetObject'
+#            Effect: Allow
+#            Resource: !Join
+#              - ''
+#              - - 'arn:aws:s3:::'
+#                - !Ref DOC-EXAMPLE-BUCKET
+#                - /*
+#            Principal: '*'
+#            Condition:
+#              StringLike:
+#                'aws:Referer':
+#                  - 'http://www.example.com/*'
+#                  - 'http://example.net/*'
 
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      # Basic Configuration
-      Type: !Ref LBTypeParam
-      Name: !Ref LBNameParam
-      Scheme: !Ref SchemeParam
-      IpAddressType: !Ref IpAddressTypeParam
-
-
-      # Network Configuration
-      #SubnetMappings: 
-      #  - SubnetMapping
-      Subnets: !Ref SubnetListParam
-      SecurityGroups: !Ref SecurityGroupListParam
-
-
-      LoadBalancerAttributes:
-        # All LB
-        - Key: "deletion_protection.enabled"
-          Value: false  # true
-
-        # Application LB and Network LB
-#        - Key: "access_logs.s3.enabled"
-#          Value: 
-#        - Key: "access_logs.s3.bucket"
-#          Value: 
-#        - Key: "access_logs.s3.prefix"
-#          Value: 
-#        - Key: "ipv6.deny_all_igw_traffic"
-#          Value: 
-        # Only Application LB
-#        - Key: "idle_timeout.timeout_seconds"
-#          Value: 
-#        - Key: "routing.http.desync_mitigation_mode"
-#          Value: 
-#        - Key: "routing.http.drop_invalid_header_fields.enabled"
-#          Value: 
-#        - Key: "routing.http.x_amzn_tls_version_and_cipher_suite.enabled"
-#          Value: 
-#        - Key: "routing.http.xff_client_port.enabled"
-#          Value: 
-#        - Key: "routing.http2.enabled"
-#          Value: 
-#        - Key: "waf.fail_open.enabled "
-#          Value: 
-        # Network LB and Gateway LB
-#        - Key: "load_balancing.cross_zone.enabled"
-#          Value: 
-
-      Tags:
-        - Key: CloudFormationStack
-          Value: !Ref 'AWS::StackId'
-        - Key: Name
-          Value: !Ref LBNameParam
-      
 
 
 Outputs:
   S3ARN:
     Description: S3 Bucket ID
-    Value: !Ref LoadBalancer
+    Value: !Ref S3Bucket
     Export:
       Name: !Sub "${AWS::StackName}-BucketArn"
 ...
-
-

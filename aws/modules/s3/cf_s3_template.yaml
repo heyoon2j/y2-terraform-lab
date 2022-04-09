@@ -1,13 +1,14 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  # Application Load Balancer Template
-  * For AWS CloudFormation - Application Load Balancer Template
-  * You must create alb, after create 'Target Group'.
-
+  # S3 Bucket Template
+  * For AWS CloudFormation - S3 Bucket Template
+  * S3 is Simple Storage Service (Object Storage)
 
   ## Resources
-  1. ElasticLoadBalancingV2::LoadBalancer
+  1. AWS::S3::Bucket
+  2. AWS::S3::BucketPolicy
+
 
   ## Parameter
 
@@ -24,8 +25,18 @@ Metadata:
 #          - PolicyDocumentParam
 
 
-#Mappings:
-
+Mappings:
+  KMSKeyMap:
+    SSEAlgorithm:
+      KMS: "aws:kms"
+      AES256: "AES256"            
+#  DBEngineMap:
+#    mariadb:
+#      Log:
+#        - audit
+#        - error
+#        - general
+#        - slowquery  
 
 
 Parameters:
@@ -34,16 +45,25 @@ Parameters:
     Type: String
     Default: "s3-y2j-cf-test12"
   BucketKeyEnabledParam:
-    Description: 'Server-side encryption using KMS : true, false (Default: false)
+    Description: 'S3 generate Bucket Key using KMS : true, false (Default: false)'
     Type: String
-    Default: "false"
+    Default: "true"
     AllowedValues:
-      - 'false'
+#      - 'false'
       - 'true'
+  SSEAlgorithmParam:
+    Description: ''
+    Type: String
+    Default: "null"
+    AllowedValues:
+      - 'null'
+      - 'KMS'
+      - 'AES256'
   KeyIDParam:
     Description: 'KMS Key ID'
     Type: String
     Default: "null"
+
 #  PolicyDocumentParam:
 #    Description: ''
 #    Type: String
@@ -53,7 +73,7 @@ Parameters:
 
 
 Conditions:
-  IsEncrypted: !Not [!Equals [!Ref BucketKeyEnabledParam, "null"]]
+  IsEncrypted: !Not [!Equals [!Ref KeyIDParam, "null"]]
   UsesKMS: !Not [!Equals [!Ref KeyIDParam, "null"]]  
 
 
@@ -65,22 +85,21 @@ Resources:
 
       # Security
       BucketEncryption: 
-        ServerSideEncryptionConfiguration: 
-          - BucketKeyEnabled: !Ref BucketKeyEnabledParam
-            ServerSideEncryptionByDefault:
-                KMSMasterKeyID: !If [IsEncrypted, !Ref KeyIDParam, !Ref AWS::NoValue]
-                SSEAlgorithm: !If [IsEncrypted, !If [UsesKMS, "aws:kms", AES256"], !Ref AWS::NoValue]
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+                SSEAlgorithm: !If [IsEncrypted, "aws:kms", !Ref AWS::NoValue]
+                KMSMasterKeyID: !If [UsesKMS, !Ref KeyIDParam, !Ref AWS::NoValue]
+            BucketKeyEnabled: !If [IsEncrypted, !Ref BucketKeyEnabledParam, !Ref AWS::NoValue]
 
       PublicAccessBlockConfiguration: 
-        BlockPublicAcls: true
-        IgnorePublicAcls: true
-        BlockPublicPolicy: true
-        RestrictPublicBuckets: true
+        BlockPublicAcls: 'true'
+        IgnorePublicAcls: 'true'
+        BlockPublicPolicy: 'true'
+        RestrictPublicBuckets: 'true'
 
       OwnershipControls: 
         Rules: # BucketOwnerEnforced| ObjectWriter| BucketOwnerPreferred
-          - OwnershipControlsRule: BucketOwnerEnforced
-
+          - ObjectOwnership: 'BucketOwnerPreferred'
 #      AccessControl: String
 #      CorsConfiguration: 
 #        CorsConfiguration      
@@ -88,9 +107,9 @@ Resources:
 
       # Object Management
       VersioningConfiguration: 
-          Status: Suspended
+          Status: 'Suspended'
       
-      ObjectLockEnabled: false
+      ObjectLockEnabled: 'false'
 #      ObjectLockConfiguration: 
 #        ObjectLockConfiguration
       

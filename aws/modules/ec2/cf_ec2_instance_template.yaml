@@ -155,6 +155,14 @@ Resources:
           #NetworkInterfaceId: !ImportValue 
           #  Fn::Sub: ${NetworkInterfaceStackNameParam}-NetworkInterfaceId
 
+      PrivateDnsNameOptions:
+        # IPv6 DNS
+        #EnableResourceNameDnsAAAARecord: Boolean
+        # IPv4
+        EnableResourceNameDnsARecord: true
+        HostnameType: "ip-name"  # ip-name | resource-name
+
+
       BlockDeviceMappings:
         # Root Volume
         - DeviceName: !Ref RootVolumeDeviceParam
@@ -186,16 +194,24 @@ Resources:
       #CpuOptions: 
       #  - CoreCount: Integer
       #    ThreadsPerCore: Integer
-      #EbsOptimized: Boolean
+      EbsOptimized: false
       
-      #Tenancy: default | dedicated | host
+      Tenancy: "default" #default | dedicated | host
+      # If Tenancy is "host", use  HostResourceGroupArn or HostId for connection Host
       #HostResourceGroupArn: String
       #HostId: String
-      #Affinity: String
+      #Affinity: String # host / default
 
       #IamInstanceProfile: String
       DisableApiTermination: false
       InstanceInitiatedShutdownBehavior: stop 
+      
+      # Nitro
+      EnclaveOptions: 
+          Enabled: false
+      # 최대 절전
+      HibernationOptions: 
+        Configured: false
 
       #KeyName: String
       Monitoring: false
@@ -210,6 +226,10 @@ Resources:
           Value: !Ref AWS::StackId
         - Key: Name
           Value: !Ref InstanceNameParam
+
+
+
+
 
 
 Outputs:

@@ -191,9 +191,14 @@ Resources:
 #                  - { EBSVolumeStackName: !Select [1, !Ref AddVolumeStackNameListParam] }
 #              !Ref AWS::NoValue
 #          Device: /dev/xvdc
+
       #CpuOptions: 
       #  - CoreCount: Integer
       #    ThreadsPerCore: Integer
+      
+      #CreditSpecification:
+      #  CPUCredits: String
+
       EbsOptimized: false
       
       Tenancy: "default" #default | dedicated | host
@@ -204,17 +209,20 @@ Resources:
 
       #IamInstanceProfile: String
       DisableApiTermination: false
-      InstanceInitiatedShutdownBehavior: stop 
-      
+      InstanceInitiatedShutdownBehavior: stop
+
       # Nitro
       EnclaveOptions: 
           Enabled: false
       # 최대 절전
-      HibernationOptions: 
+      HibernationOptions:
         Configured: false
 
       #KeyName: String
+
+      # CloudWatch Monitoring
       Monitoring: false
+
       #SsmAssociations: 
       #  - SsmAssociation      
       UserData: 

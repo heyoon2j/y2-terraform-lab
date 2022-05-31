@@ -118,36 +118,36 @@ Resources:
       LoadBalancerAttributes:
         # All LB
         - Key: "deletion_protection.enabled"
-          Value: true  # true
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, deletionProtection_enabled]
 
         # Application LB and Network LB
         - Key: "access_logs.s3.enabled"
-          Value: false
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, accessLogs_s3_enabled]
 #        - Key: "access_logs.s3.bucket"
-#          Value: 
+#          Value: !FindInMap [AttrMap, !Ref LBTypeParam, accessLogs_s3_bucket]
 #        - Key: "access_logs.s3.prefix"
-#          Value: 
+#          Value: !FindInMap [AttrMap, !Ref LBTypeParam, accessLogs_s3_prefix]
 #        - Key: "ipv6.deny_all_igw_traffic"
-#          Value: # internet-facing : false / # internal : true
+#          Value: !FindInMap [AttrMap, !Ref LBTypeParam, ipv6_denyAllIgwTraffic]
 
         # Only Application LB
-#        - Key: "idle_timeout.timeout_seconds"
-#          Value: 
-#        - Key: "routing.http.desync_mitigation_mode"
-#          Value: 
-#        - Key: "routing.http.drop_invalid_header_fields.enabled"
-#          Value: 
-#        - Key: "routing.http.x_amzn_tls_version_and_cipher_suite.enabled"
-#          Value: 
-#        - Key: "routing.http.xff_client_port.enabled"
-#          Value: 
-#        - Key: "routing.http2.enabled"
-#          Value: 
-#        - Key: "waf.fail_open.enabled "
-#          Value: 
+        - Key: "idle_timeout.timeout_seconds"
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, idleIimeout_timeoutSeconds]
+        - Key: "routing.http.desync_mitigation_mode"
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, routing_http_desyncMitigationMode]
+        - Key: "routing.http.drop_invalid_header_fields.enabled"
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, routing_http_dropInvalidHeaderFields_enabled]
+        - Key: "routing.http.x_amzn_tls_version_and_cipher_suite.enabled"
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, routing_http_xAmznTlsVersionAndCipherSuite_enabled]
+        - Key: "routing.http.xff_client_port.enabled"
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, routing_http_xffClientPort_enabled]
+        - Key: "routing.http2.enabled"
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, routing_http2_enabled]
+        - Key: "waf.fail_open.enabled "
+          Value: !FindInMap [AttrMap, !Ref LBTypeParam, waf_failOpen_enabled]
         # Network LB and Gateway LB
-        - Key: "load_balancing.cross_zone.enabled"
-          Value: false4
+#        - Key: "load_balancing.cross_zone.enabled"
+#          Value: !FindInMap [AttrMap, !Ref LBTypeParam, loadBalancing_crossZone_enabled]
 
 
       Tags:

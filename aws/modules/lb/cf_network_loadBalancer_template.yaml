@@ -29,13 +29,27 @@ Metadata:
           - SecurityGroupListParam
 
 Mappings:
-  DBEngineMap:
-    mariadb:
-      Log:
-        - audit
-        - error
-        - general
-        - slowquery
+  ATTRMap:
+    ALB:
+      deletionProtection_enabled: true
+      accessLogs_s3_enabled: false
+      accessLogs_s3_bucket: ""
+      accessLogs_s3_prefix: ""
+      ipv6_denyAllIgwTraffic: false           # internet-facing : false / # internal : true
+      idleIimeout_timeoutSeconds: 60          # 1~4000
+      routing_http_desyncMitigationMode: "defensive"  # Default defensive / monitor / strictest
+      routing_http_dropInvalidHeaderFields_enabled: false            # Default false / true
+      routing_http_xAmznTlsVersionAndCipherSuite_enabled: false   # Default false / true
+      routing_http_xffClientPort_enabled: false   # Default false / true
+      routing_http2_enabled: true     # Default true / false
+      waf_failOpen_enabled: false    # Default false / true
+    NLB:
+      deletionProtection_enabled: true 
+      accessLogs_s3_enabled: false
+      accessLogs_s3_bucket: ""
+      accessLogs_s3_prefix: ""
+      ipv6_denyAllIgwTraffic: false             # internet-facing : false / # internal : true
+      loadBalancing_crossZone_enabled: false    # Default false / true
 
 Parameters:
   LBTypeParam:
@@ -104,17 +118,18 @@ Resources:
       LoadBalancerAttributes:
         # All LB
         - Key: "deletion_protection.enabled"
-          Value: false  # true
+          Value: true  # true
 
         # Application LB and Network LB
-#        - Key: "access_logs.s3.enabled"
-#          Value: 
+        - Key: "access_logs.s3.enabled"
+          Value: false
 #        - Key: "access_logs.s3.bucket"
 #          Value: 
 #        - Key: "access_logs.s3.prefix"
 #          Value: 
 #        - Key: "ipv6.deny_all_igw_traffic"
-#          Value: 
+#          Value: # internet-facing : false / # internal : true
+
         # Only Application LB
 #        - Key: "idle_timeout.timeout_seconds"
 #          Value: 
@@ -131,8 +146,9 @@ Resources:
 #        - Key: "waf.fail_open.enabled "
 #          Value: 
         # Network LB and Gateway LB
-#        - Key: "load_balancing.cross_zone.enabled"
-#          Value: 
+        - Key: "load_balancing.cross_zone.enabled"
+          Value: false4
+
 
       Tags:
         - Key: CloudFormationStack

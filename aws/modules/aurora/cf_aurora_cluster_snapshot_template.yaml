@@ -4,6 +4,11 @@ Description: >-
   # Aurora Cluster Template
   * For AWS CloudFormation - Aurora Cluster Template
 
+  ## DB Information
+  * Master User : <id>
+  * Default Password : <pw>
+  * Default DatabaseName : <db_name> 
+
 
   ## DB Engine
   * MySQL
@@ -124,6 +129,7 @@ Parameters:
   DBClusterIdentifierParam:
     Description: 'Aurora Cluster Name'
     Type: String
+    AllowedPattern: "^(\\w)+$"
     Default: 'rds-y2-test-cluster'
 #  GlobalClusterIdentifierParam:
 #    Description: 'Aurora Global Cluster Name'
@@ -147,7 +153,7 @@ Parameters:
   DBSnapshotIdentifierParam:
     Description: 'Snapshot ARN. Create db using Snapshot'
     Type: String
-    Default: 'null'
+    AllowedPattern: "^(arn:aws:rds:)+(\\w)+$"
 #  SourceDBClusterIdentifierParam:
 #    Description: 'Source DB Cluster ID, Create Replica'
 #    Type: String
@@ -177,11 +183,13 @@ Parameters:
   PortParam:
     Description: 'Database Port Number'
     Type: String
-    Default: '5432'
+    Default: '15432'
+    AllowedPattern: "^(\\d)+$"
   ClusterParameterGroupNameParam:
     Description: 'Cluster Parameter Group Name'
     Type: String
     Default: 'null'
+    AllowedPattern: "^(\\w)+$"
 
 
 
@@ -190,6 +198,7 @@ Parameters:
     Description: 'Subnet Group Name'
     Type: String
     Default: 'sg-cluster-y2-test'
+    AllowedPattern: "^(\\w)+$"
 #  AzsParam:
 #    Description: 'Availability Zones'
 #    Type: List<AWS::EC2::AvailabilityZone::Name>

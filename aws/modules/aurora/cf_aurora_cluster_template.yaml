@@ -4,11 +4,14 @@ Description: >-
   # Aurora Cluster Template
   * For AWS CloudFormation - Aurora Cluster Template
 
+  ## DB Information
+  * Master User : <id>
+  * Default Password : <pw>
+  * Default DatabaseName : <db_name> 
 
   ## DB Engine
   * MySQL
   * Postgres
-
 
   ## Resources
   1. 
@@ -24,18 +27,22 @@ Description: >-
   ## Create Aurora
   * Basic => Aurora Cluster & Write/Read Instance
   * Snapshot => Restore
-  * SourceDB & ResotreType => Clone
-  * ReplicationSourceIdentifier => Cross-Region Read Replica
+  * SourceDBCluster & RestorableTime => Restore to a point in time
+  * RepliacationSource => Read Replica
+  * SourceRegion & ResotreType => Clone
+
 
 #SnapshotIdentifier: !Ref DBSnapshotIdentifierParam
 
+#SourceDBClusterIdentifier: !Ref SourceDBClusterIdentifierParam
+#UseLatestRestorableTime: Boolean
+
 #ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
       
-#SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
 #SourceRegion: !Ref SourceRegionParam
 #RestoreType: !Ref RestoreTypeParam
 
-#UseLatestRestorableTime: Boolean
+
 
 
 
@@ -56,6 +63,7 @@ Metadata:
       #    - DBSnapshotIdentifierParam
       #    - SourceDBClusterIdentifierParam
       #    - SourceRegionParam
+      #  - RestoreType
 
       - 
         Label:
@@ -126,6 +134,7 @@ Parameters:
   DBClusterIdentifierParam:
     Description: 'Aurora Cluster Name'
     Type: String
+    AllowdPattern: "^\w$"
     Default: 'rds-y2-test-cluster'
 #  GlobalClusterIdentifierParam:
 #    Description: 'Aurora Global Cluster Name'

@@ -37,7 +37,7 @@ Metadata:
       - 
         Label:
          default: "Storage Configuration"
-       Parameters:
+        Parameters:
 #aurora          - StorageTypeParam
 #aurora          - StorageSizeParam
           #- IopsParam

@@ -1,0 +1,293 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  # Aurora Cluster Template using snapshot
+  * For AWS CloudFormation - Aurora Cluster Template
+
+  ## DB Engine
+  * Postgres
+
+  ## DB Information
+  * Master User : postgres
+  * Default Password : koreanre12!
+  * Default DatabaseName : postdb
+
+
+  ## Not Use Parameter for using snapshot
+  * GlobalClusterIdentifier
+  * MasterUsername
+  * ReplicationSourceIdentifier
+  * RestoreType
+  * SourceDBClusterIdentifier
+  * SourceRegion
+  * StorageEncrypted
+  * UseLatestRestorableTime
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label:
+          default: "Aurora Cluster Configuration"
+        Parameters:
+          - DBClusterName
+
+      - 
+        Label:
+          default: "Snapshot & Replica & Restore Configuration"
+        Parameters:          
+          - DBSnapshotARN
+        #  - SourceDBClusterIdentifierParam
+        #  - SourceRegionParam
+        #  - RestoreType
+
+      - 
+        Label:
+          default: "Storage Configuration"
+        Parameters:
+          - KmsKey
+
+      - 
+        Label:
+          default: "Database Configuration"
+        Parameters:
+          - DBEngine
+          - DBEngineVersion
+#snapshot          - DatabaseNameParam
+#snapshot          - MasterUsernameParam
+#snapshot          - MasterUserPasswordParam
+          - PortNumber
+#TEST          - ClusterParameterGroupName
+
+      - 
+        Label:
+          default: "Network Configuration"
+        Parameters:
+          - SubnetGroupName
+#          - AzsParam
+          - SecurityGroupList
+
+      - 
+        Label:
+          default: "Backup Configuration"
+        Parameters:
+          - BackupRetentionPeriod
+          - PreferredBackupWindow
+
+      - 
+        Label:
+          default: "Log & Maintenance Configuration"
+        Parameters:
+          - EnableCloudwatchLogs
+          - PreferredMaintenanceWindow
+
+
+Mappings:
+  DBEngineMap:
+    aurora-postgresql:
+      Log:
+        - postgresql
+
+
+
+Parameters:
+  DBClusterName:
+    Description: 'Aurora Cluster Name'
+    Type: String
+    AllowedPattern: "^(\\w|-)+$"
+    Default: 'rds-y2-test-cluster'
+#  GlobalClusterIdentifierParam:
+#    Description: 'Aurora Global Cluster Name'
+#    Type: String
+#    Default: 'null'
+  DBEngine:
+    Description: 'DB Engine Name'
+    Type: String
+    AllowedValues:
+      - aurora-postgresql
+    Default: aurora-postgresql
+  DBEngineVersion:
+    Description: 'DB Engine Version'
+    Type: String
+    Default: '13.5'
+    AllowedValues:
+      - '12.7'
+      - '13.5'
+
+
+  DBSnapshotARN:
+    Description: 'Snapshot ARN. Create db using Snapshot'
+    Type: String
+    AllowedPattern: "^(arn:aws:rds:)+(\\w|-|:)+$"
+    Default: "arn:aws:rds:ap-south-1:704205518560:cluster-snapshot:test-snapshot"
+
+#snapshot  DatabaseNameParam:
+#    Description: 'Database Name'
+#    Type: String
+#    Default: 'database12'   
+#snapshot  MasterUsernameParam:
+#    Description: 'Master Username'
+#    Type: String
+#    Default: 'test12'
+#snapshot  MasterUserPasswordParam:
+#    Description: 'Master User Password'
+#    Type: String
+#    Default: 'testtest12!'
+  PortNumber:
+    Description: 'Database Port Number'
+    Type: String
+    Default: '15432'
+    AllowedPattern: "^(\\d)+$"
+#TEST  ClusterParameterGroupName:
+#TEST    Description: 'Cluster Parameter Group Name'
+#TEST    Type: String
+#TEST    Default: 'null'
+#TEST    AllowedPattern: "^(\\w|-)+$"
+
+
+  # Network
+  SubnetGroupName:
+    Description: 'Subnet Group Name'
+    Type: String
+    Default: 'db-subnetgroup'
+    AllowedPattern: "^(\\w|-)+$"
+  SecurityGroupList:
+    Description: 'Security Group List'
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+
+  # Storage
+  KmsKey:
+    Description: "KMS Key ID  / null == No encryption"
+    Type: String
+#    Default: "null"
+#    AllowedValues:
+#      - "null"
+            
+  # Backup
+  BackupRetentionPeriod:
+    Description: 'Backup Retention Period: 1 ~ 35 (Day)'
+    Type: Number
+    Default: 7
+    MinValue: 1
+    MaxValue: 35
+  PreferredBackupWindow:
+    Description: 'Backup Window(UTC): hh24:mi-hh24:mi (ex> 00:30-01:30)'
+    Type: String
+    Default: '17:00-17:30'
+
+
+  # Log & Maintenance Configuration
+  EnableCloudwatchLogs:
+    Description: 'Does db use CloudWatch Logs? (ex> true/false)'
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+  PreferredMaintenanceWindow:
+    Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
+    Type: String
+    Default: 'sat:16:00-sat:16:30'
+
+
+#Rules:
+
+
+Conditions:
+#  IsEncrypted: !Not [!Equals [!Ref KmsKey, 'null']]
+  IsEncrypted: !Not [!Equals [!Ref KmsKey, '']]
+  UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogs, true]
+
+
+Resources:
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      # DB Cluster
+      DBClusterIdentifier: !Ref DBClusterName
+      #GlobalClusterIdentifier: !Ref GlobalClusterIdentifierParam # Not use other region
+      Engine: !Ref DBEngine
+      EngineVersion: !Ref DBEngineVersion
+      EngineMode: 'provisioned'
+
+#snapshot      DatabaseName: !Ref DatabaseNameParam
+#snapshot      MasterUsername: !Ref MasterUsernameParam
+#snapshot      MasterUserPassword: !Ref MasterUserPasswordParam
+      Port: !Ref PortNumber
+#TEST      DBClusterParameterGroupName: !Ref ClusterParameterGroupName
+
+      #EnableIAMDatabaseAuthentication: String
+      #AssociatedRoles: 
+      #  - DBInstanceRole
+ 
+
+      # Snapshot & Replica & Restore
+      SnapshotIdentifier: !Ref DBSnapshotARN
+ 
+      #ReplicationSourceIdentifier: !Ref ReplicationSourceIdentifierParam
+      
+      #SourceDBClusterInstanceIdentifier: !Ref SourceDBClusterIdentifierParam
+      #SourceRegion: !Ref SourceRegionParam
+      #RestoreType: !Ref RestoreTypeParam
+      
+
+      #UseLatestRestorableTime: Boolean
+      #ScalingConfiguration: #Serverless
+      #  AutoPause: Boolean
+      #  MaxCapacity: Integer
+      #  MinCapacity: Integer
+      #  SecondsUntilAutoPause: Integer
+
+
+
+      # Storage
+      StorageEncrypted: !If [IsEncrypted, true, !Ref AWS::NoValue]
+      KmsKeyId: !If [IsEncrypted, !Ref KmsKey, !Ref AWS::NoValue]
+
+
+      # Network
+      DBSubnetGroupName: !Ref SubnetGroupName
+#      AvailabilityZones: !Ref AzsParam
+      VpcSecurityGroupIds: !Ref SecurityGroupList
+
+  
+      # Backup
+      BackupRetentionPeriod: !Ref BackupRetentionPeriod
+      PreferredBackupWindow: !Ref PreferredBackupWindow
+      CopyTagsToSnapshot: true
+
+
+      # Log & Maintenance
+      EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref DBEngine, Log], !Ref AWS::NoValue]
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
+      #BacktrackWindows
+
+
+      # Option
+      DeletionProtection: true
+      #EnableHttpEndpoint: Boolean # Only Serverless
+
+
+      Tags: 
+        - Key: CloudFormationStack
+          Value: !Ref 'AWS::StackId'
+        - Key: Name
+          Value: !Ref DBClusterName
+
+
+
+Outputs:
+  ClusterId:
+    Description: Aurora Cluster ID
+    Value: !Ref AuroraCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-AuroraClusterId"
+
+  ClusterEngine:
+    Description: 'Aurora Cluster DB Engine'
+    Value: !Ref DBEngine
+    Export:
+      Name: !Sub "${AWS::StackName}-AuroraDBEngine"
+...

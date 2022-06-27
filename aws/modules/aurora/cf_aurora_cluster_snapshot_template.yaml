@@ -129,7 +129,7 @@ Parameters:
   DBClusterIdentifierParam:
     Description: 'Aurora Cluster Name'
     Type: String
-    AllowedPattern: "^(\\w)+$"
+    AllowedPattern: "^(\\w|-)+$"
     Default: 'rds-y2-test-cluster'
 #  GlobalClusterIdentifierParam:
 #    Description: 'Aurora Global Cluster Name'
@@ -153,7 +153,7 @@ Parameters:
   DBSnapshotIdentifierParam:
     Description: 'Snapshot ARN. Create db using Snapshot'
     Type: String
-    AllowedPattern: "^(arn:aws:rds:)+(\\w)+$"
+    AllowedPattern: "^(arn:aws:rds:)(\\w|-|:)+$"
 #  SourceDBClusterIdentifierParam:
 #    Description: 'Source DB Cluster ID, Create Replica'
 #    Type: String
@@ -189,7 +189,7 @@ Parameters:
     Description: 'Cluster Parameter Group Name'
     Type: String
     Default: 'null'
-    AllowedPattern: "^(\\w)+$"
+    AllowedPattern: "^(\\w|-)+$"
 
 
 
@@ -198,7 +198,7 @@ Parameters:
     Description: 'Subnet Group Name'
     Type: String
     Default: 'sg-cluster-y2-test'
-    AllowedPattern: "^(\\w)+$"
+    AllowedPattern: "^(\\w|-)+$"
 #  AzsParam:
 #    Description: 'Availability Zones'
 #    Type: List<AWS::EC2::AvailabilityZone::Name>
@@ -212,7 +212,6 @@ Parameters:
   KmsKeyParam:
     Description: "KMS Key ID  / null == No encryption"
     Type: String
-    Default: "null"
 
             
   # Backup
@@ -246,7 +245,7 @@ Parameters:
 
 
 Conditions:
-  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, 'null']]
+  IsEncrypted: !Not [!Equals [!Ref KmsKeyParam, '']]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
 
 

@@ -8,6 +8,10 @@ Description: >-
   * MySQL
   * Postgres
 
+  ## DB Information
+  * Master User : kkkkk
+  * Default Password : kkkkkk
+  * Default DatabaseName : postgres
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -131,11 +135,9 @@ Parameters:
   DBInstanceClassParam:
     Description: 'DB Instance Class'
     Type: String
-    Default: db.r3.large
+    Default: db.r5.large
     AllowedValues:
       - db.r3.large
-      - db.t3.medium
-      - db.t3.large
       - db.r5.large
       - db.r5.xlarge
       - db.r5.2xlarge
@@ -181,14 +183,10 @@ Parameters:
     Description: 'DB Engine Version'
     Type: String
     Default: '5.7.mysql_aurora.2.10.0'
-    #AllowedValues:
-    #  - 
-
-
-  DBSnapshotIdentifierParam:
-    Description: 'Snapshot ARN. Create db using Snapshot'
-    Type: String
-    Default: 'null'
+    AllowedValues:
+      - '5.7.mysql_aurora.2.10.0'
+      - '12.7'
+      - '13.5'
 
 
 #aurora  DatabaseNameParam:
@@ -365,7 +363,7 @@ Resources:
 
       # Network
       DBSubnetGroupName: !Ref SubnetGroupNameParam
-#      AvailabilityZones: !Ref AzsParam
+#aurora      AvailabilityZones: !Ref AzsParam
       VpcSecurityGroupIds: !Ref SecurityGroupListParam
 
   

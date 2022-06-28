@@ -40,21 +40,20 @@ Metadata:
           - StorageSize
           #- IopsParam
           - MaxAllocatedStorageSize
-#snapshot          - KmsKeyParam
+#sanpshot          - KmsKeyParam
 
       - 
         Label:
           default: "Database Configuration"
         Parameters:
           - DBEngine
-          - DBEngineVersion
+#snapshot          - DBEngineVersion
         #  - LicenseModel
 #snapshot          - DatabaseNameParam
 #snapshot          - MasterUsernameParam
 #snapshot          - MasterUserPasswordParam
           - PortNumber
           - ParameterGroupName
-          - OptionGroupName
         #  - TimezoneParam
         #  - CharacterSetNameParam
           - CACertificateId
@@ -86,10 +85,9 @@ Metadata:
           default: "Log & Monitoring & Maintenance Configuration"
         Parameters:
           - EnableCloudwatchLogs
-#TEST
           - MonitoringIntervalParam
           - MonitoringRoleArnParam
-          - PreferredMaintenance_Window
+          - PreferredMaintenanceWindow
 
     #ParameterLabels:
     #  DBName: 
@@ -130,13 +128,6 @@ Parameters:
     AllowedValues:
       - postgres
     Default: postgres
-  DBEngineVersion:
-    Description: 'DB Engine Version'
-    Type: String
-#  LicenseModelParam:
-#    Description: 'Licent Model'
-#    Type: String
-#    AllowedValues:
 
 
   DBSnapshotArn:
@@ -144,32 +135,7 @@ Parameters:
     Type: String
     AllowedPattern: "^(arn:aws:rds:)(\\w|-|:)+$"
     Default: 'arn:aws:rds:ap-'
-#  SourceDBInstanceIdentifierParam:
-#    Description: 'Source DB ID, Create Read Replica'
-#    Type: String
-#    Default: 'null'
-#  SourceRegionParam:
-#    Description: 'Source DB Region, Create Read Replica'
-#    Type: String
-#    Default: 'null'
-#    AllowedValues:
-#      - 'null'
-#      - 'us-west-1'
-#      - 'us-east-1'
-#      - 'ap-northeast-2'
 
-#snapshot  DatabaseNameParam:
-#    Description: 'Database Name'
-#    Type: String
-#    Default: 'database12'
-#snapshot  MasterUsernameParam:
-#    Description: 'Master Username'
-#    Type: String
-#    Default: 'test12'
-#snapshot  MasterUserPasswordParam:
-#    Description: 'Master User Password'
-#    Type: String
-#    Default: 'testtest12!'
   PortNumber:
     Description: 'Database Port Number'
     Type: String
@@ -179,10 +145,6 @@ Parameters:
     Description: 'Parameter Group Name'
     Type: String
     AllowedPattern: "^(\\w|-)+$"
-#TEST  OptionGroupName:
-#    Description: 'Option Group Name / If engine is postgres, set null'
-#    Type: String
-#    AllowedPattern: "^(\\w|-)+$"
   CACertificateId:
     Description: 'CA Certification'
     Type: String
@@ -199,7 +161,7 @@ Parameters:
     Description: 'Subnet Group Name'
     Type: String
     AllowedPattern: "^(\\w|-)+$"
-    Default: 'sg-cluster-y2-test'
+    Default: 'db-subnetgroup' #'sg-cluster-y2-test'
   AZ:
     Description: 'Availability Zone / If you check Multi AZ true, this changes to AWS::NoValue'
     Type: AWS::EC2::AvailabilityZone::Name
@@ -235,7 +197,7 @@ Parameters:
 #snapshot  KmsKeyParam:
 #    Description: "KMS Key ID  / null == No encryption"
 #    Type: String
-#    Default: "null"
+#    Default: ""
 
 
   # Availability
@@ -283,7 +245,7 @@ Parameters:
   MonitoringRoleArnParam:
     Description: 'Monitoring Role ARN / Input value, when MonitoringIntervalParam is not 0'
     Type: String
-  PreferredMaintenance_Window:
+  PreferredMaintenanceWindow:
     Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
     Type: String
     Default: 'sun:01:00-sun:01:30'
@@ -310,15 +272,14 @@ Resources:
       DBInstanceIdentifier: !Ref DBName
       DBInstanceClass: !Ref DBInstanceClass      
       Engine: !Ref DBEngine
-      EngineVersion: !Ref DBEngineVersion
+#TEST      EngineVersion: !Ref DBEngineVersion
       #LicenseModel: !Ref LicenseModelParam
 
 #snapshot      DBName: !Ref DatabaseNameParam
 #snapshot      MasterUsername: !Ref MasterUsernameParam
 #snapshot      MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortNumber
-      DBParameterGroupName: !Ref ParameterGroupName
-      OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupName, !Ref AWS::NoValue]
+#TEST      DBParameterGroupName: !Ref ParameterGroupName
       CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateId, !Ref AWS::NoValue]
 
       #EnableIAMDatabaseAuthentication: String
@@ -363,14 +324,14 @@ Resources:
       EnableCloudwatchLogsExports: !If [UsesCloudwatchLogsExport, !FindInMap [DBEngineMap, !Ref DBEngine, Log], !Ref AWS::NoValue]
       MonitoringInterval: !If [UsesMonitoring, !Ref MonitoringIntervalParam, !Ref AWS::NoValue]
       MonitoringRoleArn: !If [UsesMonitoring, !Ref MonitoringRoleArnParam, !Ref AWS::NoValue]
-      PreferredMaintenanceWindow: !Ref PreferredMaintenance_Window
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
 #snapshot      EnablePerformanceInsights: false
       #PerformanceInsightsKMSKeyId: String
       #PerformanceInsightsRetentionPeriod: Number
 
 
       # Option
-      DeletionProtection: true
+#TEST      DeletionProtection: true
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
 

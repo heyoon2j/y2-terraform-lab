@@ -53,7 +53,7 @@ Metadata:
           default: "Database Configuration"
         Parameters:
           - EngineParam
-          - EngineVersionParam
+#          - EngineVersionParam
           #- LicenseModelParam        
 #aurora          - DatabaseNameParam
 #aurora          - MasterUsernameParam

@@ -51,7 +51,7 @@ Metadata:
           default: "Database Configuration"
         Parameters:
           - DBEngine
-          - DBEngineVersion
+#          - DBEngineVersion
           #- LicenseModelParam        
 #aurora          - DatabaseNameParam
 #aurora          - MasterUsernameParam
@@ -153,13 +153,13 @@ Parameters:
     AllowedValues:
       - aurora-postgresql
     Default: aurora-postgresql
-  DBEngineVersion:
-    Description: 'DB Engine Version'
-    Type: String
-    Default: '13.5'
-    AllowedValues:
-      - '12.7'
-      - '13.5'
+#  DBEngineVersion:
+#    Description: 'DB Engine Version'
+#    Type: String
+#    Default: '13.5'
+#    AllowedValues:
+#      - '12.7'
+#      - '13.5'
 
 
 #aurora  DatabaseNameParam:
@@ -190,7 +190,6 @@ Parameters:
   CACertificateIdentifier:
     Description: 'CA Certification / null == rds-ca-2019'
     Type: String
-    Default: 'null'
     #AllowedValues: 
 
 
@@ -294,7 +293,7 @@ Resources:
 
       #GlobalClusterIdentifier: !Ref GlobalClusterIdentifierParam # Not use other region
       Engine: !Ref DBEngine
-      EngineVersion: !Ref DBEngineVersion
+#      EngineVersion: !Ref DBEngineVersion
       EngineMode: 'provisioned'
 
 #snapshot      DatabaseName: !Ref DatabaseNameParam

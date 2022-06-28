@@ -49,12 +49,46 @@ Metadata:
           default: "Database Configuration"
         Parameters:
           - EngineParam
-          - EngineVersionParam
+#snapshot          - EngineVersionParam
         #  - LicenseModel
 #snapshot          - DatabaseNameParam
 #snapshot          - MasterUsernameParam
-#snapshot          - MonitoringIntervalParam
-#snapshot          - MonitoringRoleArnParam
+          - PortParam
+          - ParameterGroupNameParam
+          - OptionGroupNameParam
+        #  - TimezoneParam
+        #  - CharacterSetNameParam
+          - CACertificateIdentifierParam
+
+      - 
+        Label:
+          default: "Network Configuration"
+        Parameters:
+          - PubliclyAccessibleParam
+          - SubnetGroupNameParam
+          - AzParam
+          - SecurityGroupListParam
+  
+      - 
+        Label:
+          default: "Availability Configuration"
+        Parameters:
+          - MultiAzParam
+  
+      - 
+        Label:
+          default: "Backup Configuration"
+        Parameters:
+          - BackupRetentionPeriodParam
+          - PreferredBackupWindowParam
+
+      - 
+        Label:
+          default: "Log & Monitoring & Maintenance Configuration"
+        Parameters:
+          - EnableCloudwatchLogsExportParam
+          - MonitoringIntervalParam
+          - MonitoringRoleArnParam
           - PreferredMaintenanceWindowParam
 
     #ParameterLabels:
@@ -127,6 +161,7 @@ Parameters:
   DBInstanceNameParam:
     Description: 'RDS Identifier Name'
     Type: String
+    AllowedPattern: "^(\\w|-)+$"   
     Default: 'rds-y2-test'
   DBInstanceClassParam:
     Description: 'DB Instance Class'
@@ -169,8 +204,8 @@ Parameters:
   DBSnapshotArnParam:
     Description: 'Snapshot ARN. Create db using Snapshot'
     Type: String
-    Default: 'arn:aws:rds:ap'
     AllowedPattern: "^(arn:aws:rds:)(\\w|-|:)+$"
+    Default: 'arn:aws:rds:ap'
 #  SourceDBInstanceIdentifierParam:
 #    Description: 'Source DB ID, Create Read Replica'
 #    Type: String

@@ -401,7 +401,7 @@ Resources:
       MasterUsername: !Ref MasterUsernameParam
       MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortParam
-      DBParameterGroupName: !Ref ParameterGroupNameParam
+#      DBParameterGroupName: !Ref ParameterGroupNameParam
       OptionGroupName: !If [SupportsOptionGroup, !Ref OptionGroupNameParam, !Ref AWS::NoValue]
       #Timezone: !Ref TimezoneParam
       #CharacterSetName: !Ref CharacterSetNameParam

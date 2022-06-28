@@ -192,9 +192,9 @@ Parameters:
 #      - sqlserver-se
 #      - sqlserver-ex
 #      - sqlserver-web
-  EngineVersionParam:
-    Description: 'DB Engine Version'
-    Type: String
+#snapshot  EngineVersionParam:
+#snapshot    Description: 'DB Engine Version'
+#snapshot    Type: String
 #  LicenseModelParam:
 #    Description: 'Licent Model'
 #    Type: String
@@ -308,7 +308,7 @@ Parameters:
 #snapshot  KmsKeyParam:
 #    Description: "KMS Key ID  / null == No encryption"
 #    Type: String
-#    Default: "null"
+#    Default: ""
 
 
   # Availability
@@ -374,7 +374,6 @@ Conditions:
   SupportsBackup: !Not [!Equals [!Ref BackupRetentionPeriodParam, 0]]
 #snapshot  UsesMonitoring: !Not [!Equals [!Ref MonitoringIntervalParam, 0]]
   UsesCloudwatchLogsExport: !Equals [!Ref EnableCloudwatchLogsExportParam, true]
-#Not Use  IsPostgres: !Equals [!Ref EngineParam, 'postgres']
   SupportsOptionGroup: !Not [!Equals [!Ref EngineParam, 'postgres']]
 
 
@@ -386,7 +385,7 @@ Resources:
       DBInstanceIdentifier: !Ref DBInstanceNameParam
       DBInstanceClass: !Ref DBInstanceClassParam      
       Engine: !Ref EngineParam
-      EngineVersion: !Ref EngineVersionParam
+#snapshot      EngineVersion: !Ref EngineVersionParam
       #LicenseModel: !Ref LicenseModelParam
 
 #snapshot      DBName: !Ref DatabaseNameParam

@@ -272,7 +272,7 @@ Resources:
       DBInstanceIdentifier: !Ref DBName
       DBInstanceClass: !Ref DBInstanceClass      
       Engine: !Ref DBEngine
-#TEST      EngineVersion: !Ref DBEngineVersion
+#snapshot     EngineVersion: !Ref DBEngineVersion
       #LicenseModel: !Ref LicenseModelParam
 
 #snapshot      DBName: !Ref DatabaseNameParam

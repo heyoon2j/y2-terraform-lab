@@ -1,3 +1,4 @@
+/*
 # VPC
 1. Create VPC
 2. Create Subnet
@@ -14,7 +15,7 @@
 ## Outpu Value
 
 
-
+*/
 
 ############################################################
 # Create a VPC
@@ -43,7 +44,7 @@ Args:
         validation { true, false (Default) }
 
 */
-resource "aws_vpc" "vpc" {
+resource "aws_vpc" "vpc-proj-dev" {
 
     cidr_block = var.vpc_cidr
 

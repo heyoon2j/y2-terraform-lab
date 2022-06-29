@@ -9,9 +9,9 @@ Description: >-
   * Postgres
 
   ## DB Information
-  * Master User : kkkkk
-  * Default Password : kkkkkk
-  * Default DatabaseName : postgres
+  * Master User : postgres
+  * Default Password : 
+  * Default DatabaseName : postdb
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -102,7 +102,7 @@ Parameters:
     AllowedPattern: "^(\\w|-)+$"
     Default: 'rds-y2-test-cluster'
   DBInsatnceName:
-    Description: 'RDS Identifier Name / If input abc, DB ID is <AuroraClusterName + - + abc>'
+    Description: 'RDS Identifier Name'
     Type: String
     AllowedPattern: "^(\\w|-)+$"
     Default: 'rds-y2-test-instance'
@@ -177,11 +177,11 @@ Parameters:
   ClusterParameterGroupName:
     Description: 'Cluster Parameter Group Name'
     Type: String
-#TEST    AllowedPattern: "^(\\w|-)+$"
+    AllowedPattern: "^(\\w|-)+$"
   ParameterGroupName:
     Description: 'Parameter Group Name'
     Type: String
-#TEST    AllowedPattern: "^(\\w|-)+$"
+    AllowedPattern: "^(\\w|-)+$"
   PortNumber:
     Description: 'Database Port Number'
     Type: String
@@ -190,7 +190,6 @@ Parameters:
   CACertificateIdentifier:
     Description: 'CA Certification / null == rds-ca-2019'
     Type: String
-    #AllowedValues: 
 
 
   # Network
@@ -323,7 +322,6 @@ Resources:
       #  MaxCapacity: Integer
       #  MinCapacity: Integer
       #  SecondsUntilAutoPause: Integer
-
 
 
       # Storage

@@ -9,9 +9,9 @@ Description: >-
   * Postgres
 
   ## DB Information
-  * Master User : kkkkk
-  * Default Password : kkkkkk
-  * Default DatabaseName : postgres
+  * Master User : postgres
+  * Default Password : 
+  * Default DatabaseName : postdb
 
 
 Metadata:
@@ -161,7 +161,7 @@ Parameters:
     Description: 'Subnet Group Name'
     Type: String
     AllowedPattern: "^(\\w|-)+$"
-    Default: 'db-subnetgroup' #'sg-cluster-y2-test'
+    Default: 'db-subnetgroup'
   AZ:
     Description: 'Availability Zone / If you check Multi AZ true, this changes to AWS::NoValue'
     Type: AWS::EC2::AvailabilityZone::Name
@@ -248,7 +248,7 @@ Parameters:
   PreferredMaintenanceWindow:
     Description: 'Maintenance Setting(UTC): ddd:hh24:mi-ddd:hh24:mi (ex> wed:07:30-wed:08:00)'
     Type: String
-    Default: 'sun:01:00-sun:01:30'
+    Default: 'sat:16:00-sat:16:30'
 
 
 #Rules:
@@ -279,7 +279,7 @@ Resources:
 #snapshot      MasterUsername: !Ref MasterUsernameParam
 #snapshot      MasterUserPassword: !Ref MasterUserPasswordParam
       Port: !Ref PortNumber
-#TEST      DBParameterGroupName: !Ref ParameterGroupName
+      DBParameterGroupName: !Ref ParameterGroupName
       CACertificateIdentifier: !If [SupportsSSLTLS, !Ref CACertificateId, !Ref AWS::NoValue]
 
       #EnableIAMDatabaseAuthentication: String
@@ -331,7 +331,7 @@ Resources:
 
 
       # Option
-#TEST      DeletionProtection: true
+      DeletionProtection: true
       AllowMajorVersionUpgrade: true
       AutoMinorVersionUpgrade: false
 

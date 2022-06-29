@@ -213,7 +213,6 @@ Parameters:
   CACertificateIdentifierParam:
     Description: 'CA Certification / null == rds-ca-2019'
     Type: String
-    #AllowedValues: 
 
 
   # Network
@@ -315,7 +314,7 @@ Resources:
       DBClusterIdentifier: !Ref DBClusterNameParam
       #GlobalClusterIdentifier: !Ref GlobalClusterIdentifierParam # Not use other region
       Engine: !Ref EngineParam
-      EngineVersion: !Ref EngineVersionParam
+#      EngineVersion: !Ref EngineVersionParam
       EngineMode: 'provisioned'
 
 #snapshot      DatabaseName: !Ref DatabaseNameParam
@@ -345,7 +344,6 @@ Resources:
       #  MaxCapacity: Integer
       #  MinCapacity: Integer
       #  SecondsUntilAutoPause: Integer
-
 
 
       # Storage
